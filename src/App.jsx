@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Lenis from "lenis";
 
 // Import Page Components
@@ -10,9 +10,9 @@ import GalleryGrid from "./components/GalleryGrid";
 import About from "./components/About";
 import Enquire from "./components/Enquire";
 import Testimonials from "./components/Testimonials";
+import Preloader from "./components/Preloader"; // IMPORT THE PRELOADER
 
 // --- COMPONENT: Scroll To Top ---
-// Ensures the page starts at the top when navigating to a new route
 const ScrollToTop = () => {
   const { pathname } = useLocation();
   useEffect(() => {
@@ -22,7 +22,6 @@ const ScrollToTop = () => {
 };
 
 // --- COMPONENT: Film Grain Overlay ---
-// Adds a subtle cinematic noise texture to the entire website
 const GrainOverlay = () => {
   return (
     <div className="fixed inset-0 pointer-events-none z-[9998] opacity-[0.05] mix-blend-overlay">
@@ -42,7 +41,6 @@ const GrainOverlay = () => {
 };
 
 // --- COMPONENT: Magnetic Custom Cursor ---
-// A gold ring that follows the mouse with spring physics
 const CustomCursor = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
@@ -70,11 +68,13 @@ const CustomCursor = () => {
 
 // --- MAIN APP STRUCTURE ---
 function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
   // Initialize Lenis Smooth Scrolling
   useEffect(() => {
     const lenis = new Lenis({
       duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Custom easing for "heavy" feel
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       direction: "vertical",
       gestureDirection: "vertical",
       smooth: true,
@@ -90,14 +90,27 @@ function App() {
 
     requestAnimationFrame(raf);
 
-    // Cleanup on unmount
+    // --- PRELOADER TIMER ---
+    // We force the preloader to stay for 2.5 seconds to ensure the animation completes
+    // and the video behind it has time to buffer.
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
+
     return () => {
       lenis.destroy();
+      clearTimeout(timer);
     };
   }, []);
 
   return (
     <div className="bg-luxury-black min-h-screen text-white font-sans selection:bg-luxury-gold selection:text-black">
+      {/* THE PRELOADER */}
+      {/* AnimatePresence allows the component to animate OUT before it is removed from DOM */}
+      <AnimatePresence mode="wait">
+        {isLoading && <Preloader />}
+      </AnimatePresence>
+
       {/* Cinematic Utilities */}
       <ScrollToTop />
       <GrainOverlay />

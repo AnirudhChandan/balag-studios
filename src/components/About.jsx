@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { teamMembers } from "../data/team";
+import RevealText from "./RevealText"; // Import
 
 const About = () => {
   return (
@@ -16,10 +17,20 @@ const About = () => {
             <h2 className="text-luxury-gold uppercase tracking-widest text-sm mb-6">
               Our Philosophy
             </h2>
-            <h1 className="font-serif text-5xl md:text-6xl mb-8 leading-tight">
-              We Don't Just Take Photos, <br />
-              <span className="italic text-gray-400">We Freeze Time.</span>
-            </h1>
+
+            {/* UPDATED HEADLINE LOGIC */}
+            <div className="font-serif text-5xl md:text-6xl mb-8 leading-tight">
+              <RevealText text="We Don't Just Take Photos," />
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.8 }}
+                className="italic text-gray-400 block mt-2"
+              >
+                We Freeze Time.
+              </motion.span>
+            </div>
+
             <p className="text-gray-300 text-lg leading-relaxed mb-6">
               At BalaG Studios, we believe that a wedding is not just an event;
               it is a tapestry of fleeting emotions. Our approach is
@@ -59,14 +70,16 @@ const About = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="mb-16"
+          className="mb-16 flex flex-col items-center"
         >
           <h2 className="text-luxury-gold uppercase tracking-widest text-sm mb-4 text-center">
             The Crew
           </h2>
-          <h3 className="font-serif text-4xl text-center mb-16">
-            Meet the Storytellers
-          </h3>
+          {/* UPDATED CREW TITLE */}
+          <RevealText
+            text="Meet the Storytellers"
+            className="font-serif text-4xl text-center justify-center mb-16"
+          />
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-10">
