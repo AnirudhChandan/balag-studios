@@ -10,7 +10,8 @@ import GalleryGrid from "./components/GalleryGrid";
 import About from "./components/About";
 import Enquire from "./components/Enquire";
 import Testimonials from "./components/Testimonials";
-import Preloader from "./components/Preloader"; // IMPORT THE PRELOADER
+import Preloader from "./components/PreLoader";
+import Footer from "./components/Footer";
 
 // --- COMPONENT: Scroll To Top ---
 const ScrollToTop = () => {
@@ -127,6 +128,8 @@ function App() {
         <Route path="/enquire" element={<Enquire />} />
         <Route path="/testimonials" element={<Testimonials />} />
       </Routes>
+
+      <Footer />
     </div>
   );
 }
