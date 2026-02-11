@@ -5,13 +5,13 @@ import Lenis from "lenis";
 
 // Import Page Components
 import Navbar from "./components/Navbar";
-import Hero from "./components/Hero";
+import Home from "./pages/Home"; // <--- UPDATED IMPORT
 import GalleryGrid from "./components/GalleryGrid";
 import About from "./components/About";
 import Enquire from "./components/Enquire";
 import Testimonials from "./components/Testimonials";
 import Preloader from "./components/PreLoader";
-import Footer from "./components/Footer";
+import Footer from "./components/Footer"; // Assuming you have this now
 
 // --- COMPONENT: Scroll To Top ---
 const ScrollToTop = () => {
@@ -91,9 +91,6 @@ function App() {
 
     requestAnimationFrame(raf);
 
-    // --- PRELOADER TIMER ---
-    // We force the preloader to stay for 2.5 seconds to ensure the animation completes
-    // and the video behind it has time to buffer.
     const timer = setTimeout(() => {
       setIsLoading(false);
     }, 2500);
@@ -106,23 +103,18 @@ function App() {
 
   return (
     <div className="bg-luxury-black min-h-screen text-white font-sans selection:bg-luxury-gold selection:text-black">
-      {/* THE PRELOADER */}
-      {/* AnimatePresence allows the component to animate OUT before it is removed from DOM */}
       <AnimatePresence mode="wait">
         {isLoading && <Preloader />}
       </AnimatePresence>
 
-      {/* Cinematic Utilities */}
       <ScrollToTop />
       <GrainOverlay />
       <CustomCursor />
 
-      {/* Global Navigation */}
       <Navbar />
 
-      {/* Page Routing */}
       <Routes>
-        <Route path="/" element={<Hero />} />
+        <Route path="/" element={<Home />} /> {/* <--- UPDATED ROUTE */}
         <Route path="/gallery" element={<GalleryGrid />} />
         <Route path="/about" element={<About />} />
         <Route path="/enquire" element={<Enquire />} />
