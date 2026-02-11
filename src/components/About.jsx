@@ -1,12 +1,13 @@
 import { motion } from "framer-motion";
 import { teamMembers } from "../data/team";
-import RevealText from "./RevealText"; // Import
+import RevealText from "./RevealText";
+import ColorGradeSlider from "./ColorGradeSlider";
 
 const About = () => {
   return (
-    <div className="bg-luxury-black min-h-screen text-white pt-24 pb-20 px-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Section 1: The Philosophy */}
+    <div className="bg-luxury-black min-h-screen text-white pt-24 pb-20">
+      <div className="max-w-7xl mx-auto px-6">
+        {/* SECTION 1: THE PHILOSOPHY */}
         <div className="grid md:grid-cols-2 gap-16 items-center mb-32">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
@@ -14,11 +15,10 @@ const About = () => {
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-luxury-gold uppercase tracking-widest text-sm mb-6">
+            <h2 className="text-luxury-gold uppercase tracking-widest text-sm mb-6 font-sans">
               Our Philosophy
             </h2>
 
-            {/* UPDATED HEADLINE LOGIC */}
             <div className="font-serif text-5xl md:text-6xl mb-8 leading-tight">
               <RevealText text="We Don't Just Take Photos," />
               <motion.span
@@ -31,14 +31,14 @@ const About = () => {
               </motion.span>
             </div>
 
-            <p className="text-gray-300 text-lg leading-relaxed mb-6">
+            <p className="text-gray-300 text-lg font-sans leading-relaxed mb-6">
               At BalaG Studios, we believe that a wedding is not just an event;
               it is a tapestry of fleeting emotions. Our approach is
               unobtrusive, candid, and deeply artistic. We step back and let the
               magic unfold, capturing the laughter, the tears, and the silent
               glances that define your love story.
             </p>
-            <p className="text-gray-300 text-lg leading-relaxed">
+            <p className="text-gray-300 text-lg font-sans leading-relaxed">
               Based in the spiritual heart of Rishikesh, we draw inspiration
               from the flow of the Ganges—constant, calm, and eternal. That is
               how we want your memories to feel.
@@ -64,50 +64,78 @@ const About = () => {
           </motion.div>
         </div>
 
-        {/* Section 2: The Crew */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="mb-16 flex flex-col items-center"
-        >
-          <h2 className="text-luxury-gold uppercase tracking-widest text-sm mb-4 text-center">
-            The Crew
-          </h2>
-          {/* UPDATED CREW TITLE */}
-          <RevealText
-            text="Meet the Storytellers"
-            className="font-serif text-4xl text-center justify-center mb-16"
-          />
-        </motion.div>
+        {/* SECTION 2: THE COLOR GRADE SHOWCASE */}
+        <div className="py-24">
+          <div className="text-center mb-16">
+            <h2 className="text-luxury-gold uppercase tracking-widest text-sm mb-4 font-sans">
+              The Art of Edit
+            </h2>
+            <RevealText
+              text="Beyond the Click"
+              className="font-serif text-4xl md:text-6xl text-white justify-center"
+            />
+            <p className="mt-6 text-gray-400 max-w-2xl mx-auto italic font-sans">
+              Drag the gold slider to see how we transform a raw camera capture
+              into a cinematic signature grade.
+            </p>
+          </div>
 
-        <div className="grid md:grid-cols-3 gap-10">
-          {teamMembers.map((member, index) => (
-            <motion.div
-              key={member.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.2 }}
-              viewport={{ once: true }}
-              className="group relative"
-            >
-              <div className="overflow-hidden mb-6 relative h-96">
-                <img
-                  src={member.image}
-                  alt={member.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter grayscale group-hover:grayscale-0"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                  <p className="text-gray-300 text-sm italic">{member.bio}</p>
+          {/* This slider proves the value of the post-production process */}
+          <ColorGradeSlider
+            beforeImage="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80"
+            afterImage="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80"
+          />
+        </div>
+
+        {/* SECTION 3: THE CREW */}
+        <div className="pt-32">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="mb-16 flex flex-col items-center"
+          >
+            <h2 className="text-luxury-gold uppercase tracking-widest text-sm mb-4 text-center font-sans">
+              The Crew
+            </h2>
+            <RevealText
+              text="Meet the Storytellers"
+              className="font-serif text-4xl text-center justify-center mb-16"
+            />
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-10">
+            {teamMembers.map((member, index) => (
+              <motion.div
+                key={member.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                viewport={{ once: true }}
+                className="group relative"
+              >
+                <div className="overflow-hidden mb-6 relative h-96">
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter grayscale group-hover:grayscale-0"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+                    <p className="text-gray-300 text-sm italic font-sans">
+                      {member.bio}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <h3 className="text-2xl font-serif text-white">{member.name}</h3>
-              <p className="text-luxury-gold text-sm uppercase tracking-widest mt-2">
-                {member.role}
-              </p>
-            </motion.div>
-          ))}
+                <h3 className="text-2xl font-serif text-white">
+                  {member.name}
+                </h3>
+                <p className="text-luxury-gold text-sm uppercase tracking-widest mt-2 font-sans">
+                  {member.role}
+                </p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

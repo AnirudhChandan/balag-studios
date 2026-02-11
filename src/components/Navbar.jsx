@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
-import { HiMenuAlt4, HiX } from "react-icons/hi"; // Changed to MenuAlt4 for a cooler icon
+import { HiMenuAlt4, HiX } from "react-icons/hi";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  // NEW: State to track which image to show on hover
+  const [hoveredIndex, setHoveredIndex] = useState(null);
 
-  // Detect Scroll to toggle "Glass" mode
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
@@ -17,13 +18,32 @@ const Navbar = () => {
   }, []);
 
   const links = [
-    { name: "Home", path: "/" },
-    { name: "Gallery", path: "/gallery" },
-    { name: "Testimonials", path: "/testimonials" },
-    { name: "About", path: "/about" },
+    {
+      name: "Home",
+      path: "/",
+      image:
+        "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      name: "Gallery",
+      path: "/gallery",
+      image:
+        "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      name: "Testimonials",
+      path: "/testimonials",
+      image:
+        "https://images.unsplash.com/photo-1522673607200-1645062cd495?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      name: "About",
+      path: "/about",
+      image:
+        "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=1200&q=80",
+    },
   ];
 
-  // Animation Variants for Mobile Menu
   const menuVars = {
     initial: { scaleY: 0 },
     animate: {
@@ -34,14 +54,6 @@ const Navbar = () => {
       scaleY: 0,
       transition: { delay: 0.5, duration: 0.5, ease: [0.22, 1, 0.36, 1] },
     },
-  };
-
-  const linkVars = {
-    initial: {
-      y: "30vh",
-      transition: { duration: 0.5, ease: [0.37, 0, 0.63, 1] },
-    },
-    open: { y: 0, transition: { duration: 0.7, ease: [0, 0.55, 0.45, 1] } },
   };
 
   const containerVars = {
@@ -55,6 +67,14 @@ const Navbar = () => {
     },
   };
 
+  const linkVars = {
+    initial: {
+      y: "30vh",
+      transition: { duration: 0.5, ease: [0.37, 0, 0.63, 1] },
+    },
+    open: { y: 0, transition: { duration: 0.7, ease: [0, 0.55, 0.45, 1] } },
+  };
+
   return (
     <nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
@@ -63,22 +83,20 @@ const Navbar = () => {
           : "bg-transparent py-6"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-        {/* Logo */}
+      <div className="max-w-7xl mx-auto px-6 flex justify-between items-center relative z-[60]">
         <Link
           to="/"
-          className="text-2xl font-serif text-white tracking-widest z-50 relative mix-blend-difference"
+          className="text-2xl font-serif text-white tracking-widest relative mix-blend-difference"
         >
           BALAG <span className="text-luxury-gold">STUDIOS</span>
         </Link>
 
-        {/* Desktop Menu */}
         <div className="hidden md:flex space-x-12 items-center">
           {links.map((link) => (
             <Link
               key={link.name}
               to={link.path}
-              className="text-sm uppercase tracking-widest hover:text-luxury-gold transition-all duration-300 relative group"
+              className="text-sm uppercase tracking-widest hover:text-luxury-gold transition-all duration-300 group relative"
             >
               {link.name}
               <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-luxury-gold transition-all duration-300 group-hover:w-full" />
@@ -92,16 +110,14 @@ const Navbar = () => {
           </Link>
         </div>
 
-        {/* Mobile Menu Icon */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden text-2xl text-white z-50 relative focus:outline-none"
+          className="md:hidden text-2xl text-white relative focus:outline-none"
         >
           {isOpen ? <HiX /> : <HiMenuAlt4 />}
         </button>
       </div>
 
-      {/* FULL SCREEN MOBILE MENU OVERLAY */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -109,34 +125,62 @@ const Navbar = () => {
             initial="initial"
             animate="animate"
             exit="exit"
-            className="fixed inset-0 bg-luxury-black origin-top flex flex-col justify-center items-center z-40"
+            className="fixed inset-0 bg-luxury-black origin-top z-50 flex flex-col justify-center items-center overflow-hidden"
           >
+            {/* NEW: DYNAMIC BACKGROUND IMAGE PREVIEW */}
+            <div className="absolute inset-0 w-full h-full z-0">
+              <AnimatePresence>
+                {hoveredIndex !== null && (
+                  <motion.div
+                    key={hoveredIndex}
+                    initial={{ opacity: 0, scale: 1.1 }}
+                    animate={{ opacity: 0.3, scale: 1 }} // Low opacity to keep text readable
+                    exit={{ opacity: 0, scale: 1.05 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="absolute inset-0 w-full h-full bg-cover bg-center grayscale"
+                    style={{
+                      backgroundImage: `url(${links[hoveredIndex].image})`,
+                    }}
+                  />
+                )}
+              </AnimatePresence>
+              {/* Fallback dark overlay */}
+              <div className="absolute inset-0 bg-black/40 z-[1]" />
+            </div>
+
+            {/* MENU LINKS */}
             <motion.div
               variants={containerVars}
               initial="initial"
               animate="open"
               exit="initial"
-              className="flex flex-col items-center gap-6"
+              className="flex flex-col items-center gap-6 z-10"
             >
-              {links.map((link) => (
-                <div key={link.name} className="overflow-hidden">
+              {links.map((link, index) => (
+                <div
+                  key={link.name}
+                  className="overflow-hidden"
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                >
                   <motion.div variants={linkVars}>
                     <Link
                       to={link.path}
                       onClick={() => setIsOpen(false)}
-                      className="text-5xl font-serif text-white hover:text-luxury-gold transition-colors"
+                      className="text-5xl md:text-7xl font-serif text-white hover:text-luxury-gold transition-colors duration-300 italic md:not-italic hover:italic"
                     >
                       {link.name}
                     </Link>
                   </motion.div>
                 </div>
               ))}
+
               <div className="overflow-hidden mt-8">
                 <motion.div variants={linkVars}>
                   <Link
                     to="/enquire"
                     onClick={() => setIsOpen(false)}
-                    className="text-xl uppercase tracking-widest text-luxury-gold border-b border-luxury-gold pb-1"
+                    className="text-xl uppercase tracking-widest text-luxury-gold border-b border-luxury-gold pb-1 hover:text-white hover:border-white transition-colors"
                   >
                     Start Project
                   </Link>
