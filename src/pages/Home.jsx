@@ -2,7 +2,8 @@ import Hero from "../components/Hero";
 import HorizontalScrollGallery from "../components/HorizontalScrollGallery";
 import StickyScrollGallery from "../components/StickyScrollGallery";
 import ContactSheet from "../components/ContactSheet";
-import DirectorSlider from "../components/DirectorSlider"; // <--- NEW IMPORT
+import DirectorSlider from "../components/DirectorSlider";
+import DeliverablesVault from "../components/DeliverablesVault"; // <--- NEW IMPORT
 import About from "../components/About";
 
 const Home = () => {
@@ -14,8 +15,11 @@ const Home = () => {
         <StickyScrollGallery />
         <ContactSheet />
 
-        {/* NEW FEATURE: THE CONFIDENCE BOOSTER */}
+        {/* The Confidence Booster */}
         <DirectorSlider />
+
+        {/* NEW: The Value Builder */}
+        <DeliverablesVault />
 
         <About />
       </div>
