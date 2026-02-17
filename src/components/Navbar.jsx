@@ -25,6 +25,12 @@ const Navbar = () => {
         "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
     },
     {
+      name: "The Method", // <--- NEW LINK
+      path: "/method",
+      image:
+        "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
       name: "Map", // <--- NEW LINK
       path: "/map",
       image:

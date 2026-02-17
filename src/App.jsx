@@ -17,6 +17,7 @@ import Preloader from "./components/PreLoader";
 import Footer from "./components/Footer";
 import CustomCursor from "./components/CustomCursor";
 import GrainOverlay from "./components/GrainOverlay";
+import DirectorSlider from "./components/DirectorSlider";
 
 // Scroll To Top Component
 const ScrollToTop = () => {
@@ -82,7 +83,14 @@ function App() {
         <Route path="/map" element={<Locations />} />
         <Route path="/weddings/:id" element={<WeddingStory />} />
         <Route path="/planner" element={<GoldenHourPage />} />{" "}
-        {/* The Golden Hour Route */}
+        <Route
+          path="/method"
+          element={
+            <div className="pt-20">
+              <DirectorSlider />
+            </div>
+          }
+        />
       </Routes>
 
       <Footer />
