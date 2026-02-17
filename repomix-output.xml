@@ -41,21 +41,33 @@ The content is organized as follows:
 
 <directory_structure>
 public/
+  hero.mp4
   vite.svg
 src/
   assets/
     react.svg
   components/
     About.jsx
+    ColorGradeSlider.jsx
+    CustomCursor.jsx
     Enquire.jsx
+    Footer.jsx
     GalleryGrid.jsx
+    GrainOverlay.jsx
     Hero.jsx
+    HorizontalScrollGallery.jsx
+    LightSourceCursor.jsx
+    LivingGallery.jsx
     Navbar.jsx
+    PreLoader.jsx
+    RevealText.jsx
     Testimonials.jsx
   data/
     photos.js
     reviews.js
     team.js
+  pages/
+    Home.jsx
   App.css
   App.jsx
   index.css
@@ -73,6 +85,273 @@ vite.config.js
 <files>
 This section contains the contents of the repository's files.
 
+<file path="src/components/LightSourceCursor.jsx">
+import { useEffect, useState } from "react";
+import { motion, useSpring } from "framer-motion";
+
+const LightSourceCursor = () => {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  // Use springs for a "heavy", organic light movement
+  const springX = useSpring(0, { stiffness: 100, damping: 30 });
+  const springY = useSpring(0, { stiffness: 100, damping: 30 });
+
+  useEffect(() => {
+    const mouseMove = (e) => {
+      springX.set(e.clientX);
+      springY.set(e.clientY);
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener("mousemove", mouseMove);
+    return () => window.removeEventListener("mousemove", mouseMove);
+  }, [springX, springY]);
+
+  return (
+    <>
+      {/* 1. THE MAIN LIGHT SOURCE (The Flashlight) */}
+      <motion.div
+        className="fixed top-0 left-0 w-[600px] h-[600px] rounded-full pointer-events-none z-[9999] mix-blend-soft-light hidden md:block"
+        style={{
+          x: springX,
+          y: springY,
+          translateX: "-50%",
+          translateY: "-50%",
+          background: `radial-gradient(circle, rgba(212,175,55,0.15) 0%, rgba(0,0,0,0) 70%)`,
+        }}
+      />
+
+      {/* 2. THE TINY CORE POINT (The "Bulb") */}
+      <motion.div
+        className="fixed top-0 left-0 w-2 h-2 bg-luxury-gold rounded-full pointer-events-none z-[10000] hidden md:block"
+        style={{
+          x: mousePosition.x - 4,
+          y: mousePosition.y - 4,
+        }}
+      />
+    </>
+  );
+};
+
+export default LightSourceCursor;
+</file>
+
+<file path="src/components/LivingGallery.jsx">
+import { useRef, useState, useMemo, useEffect } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { useTexture } from "@react-three/drei";
+import * as THREE from "three";
+import { galleryImages } from "../data/photos";
+import RevealText from "./RevealText";
+
+// --- 1. THE GLSL LIQUID SHADER MATERIAL ---
+const LiquidShaderMaterial = {
+  uniforms: {
+    uTexture: { value: null },
+    uHover: { value: 0 },
+    uTime: { value: 0 },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D uTexture;
+    uniform float uHover;
+    uniform float uTime;
+    varying vec2 vUv;
+
+    // Simplex noise function
+    float noise(vec2 p) {
+      return sin(p.x * 10.0 + uTime) * cos(p.y * 10.0 + uTime);
+    }
+
+    void main() {
+      vec2 uv = vUv;
+      
+      // Calculate Wave / Liquid Distortion
+      // Only apply when uHover > 0
+      float wave = noise(uv + uTime * 0.5) * uHover * 0.02;
+      
+      // Apply distortion to UVs
+      vec2 distortedUV = uv + vec2(wave, wave * 0.5);
+
+      vec4 color = texture2D(uTexture, distortedUV);
+      
+      // Add a subtle RGB shift on edges for "Heat Haze" feel
+      if(uHover > 0.0) {
+        float shift = uHover * 0.01;
+        color.r = texture2D(uTexture, distortedUV + vec2(shift, 0.0)).r;
+        color.b = texture2D(uTexture, distortedUV - vec2(shift, 0.0)).b;
+      }
+
+      gl_FragColor = color;
+    }
+  `,
+};
+
+// --- 2. SINGLE IMAGE COMPONENT (WebGL) ---
+const ShaderImage = ({ url, isHovered }) => {
+  const meshRef = useRef();
+  const materialRef = useRef();
+
+  // 1. Load the raw texture
+  const rawTexture = useTexture(url);
+
+  // 2. Clone it to satisfy the linter.
+  // Cloning shares the image data, so it is performant, but gives us a mutable object.
+  const texture = useMemo(() => {
+    const cloned = rawTexture.clone();
+    cloned.minFilter = THREE.LinearFilter;
+    cloned.needsUpdate = true;
+    return cloned;
+  }, [rawTexture]);
+
+  const uniforms = useMemo(
+    () => ({
+      uTexture: { value: texture },
+      uHover: { value: 0 },
+      uTime: { value: 0 },
+    }),
+    [texture],
+  );
+
+  useFrame((state) => {
+    if (materialRef.current) {
+      // Modify the MATERIAL uniforms, not the hook variable
+      materialRef.current.uniforms.uHover.value = THREE.MathUtils.lerp(
+        materialRef.current.uniforms.uHover.value,
+        isHovered ? 1 : 0,
+        0.1,
+      );
+
+      materialRef.current.uniforms.uTime.value = state.clock.getElapsedTime();
+    }
+  });
+
+  return (
+    <mesh ref={meshRef}>
+      <planeGeometry args={[2, 3, 32, 32]} />
+      <shaderMaterial
+        ref={materialRef}
+        fragmentShader={LiquidShaderMaterial.fragmentShader}
+        vertexShader={LiquidShaderMaterial.vertexShader}
+        uniforms={uniforms}
+      />
+    </mesh>
+  );
+};
+
+// --- 3. THE CARD COMPONENT (DOM + WebGL Wrapper) ---
+const GalleryItem = ({ image }) => {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      className="relative w-full aspect-[2/3] mb-12 group cursor-pointer"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* WEBGL LAYER */}
+      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
+        <Canvas gl={{ alpha: true, antialias: true }} dpr={[1, 1.5]}>
+          <ShaderImage url={image.url} isHovered={hovered} />
+        </Canvas>
+      </div>
+
+      {/* OVERLAY: TECHNICAL META */}
+      <div className="absolute inset-0 z-10 p-6 flex flex-col justify-between opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-black/20">
+        <div className="flex justify-between items-start">
+          <span className="text-[10px] text-white/80 uppercase tracking-widest border border-white/20 px-2 py-1 backdrop-blur-md">
+            {image.category}
+          </span>
+        </div>
+
+        <div className="text-right">
+          <div className="space-y-1 mb-4 translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-100">
+            {image.meta && (
+              <>
+                <p className="text-luxury-gold text-xs font-mono">
+                  {image.meta.lens} • {image.meta.aperture}
+                </p>
+                <p className="text-gray-300 text-[10px] uppercase tracking-widest">
+                  {image.meta.location} • ISO {image.meta.iso}
+                </p>
+              </>
+            )}
+          </div>
+
+          <h3 className="font-serif text-3xl text-white translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+            {image.title}
+          </h3>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- 4. MAIN LAYOUT: ASYMMETRIC SCROLL ---
+const LivingGallery = () => {
+  const containerRef = useRef(null);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end start"],
+  });
+
+  const y1 = useTransform(scrollYProgress, [0, 1], [0, -100]);
+  const y2 = useTransform(scrollYProgress, [0, 1], [0, -200]);
+  const y3 = useTransform(scrollYProgress, [0, 1], [0, -50]);
+
+  const col1 = galleryImages.filter((_, i) => i % 3 === 0);
+  const col2 = galleryImages.filter((_, i) => i % 3 === 1);
+  const col3 = galleryImages.filter((_, i) => i % 3 === 2);
+
+  return (
+    <section
+      ref={containerRef}
+      className="bg-luxury-black min-h-screen py-32 px-4 md:px-10 overflow-hidden"
+    >
+      <div className="max-w-7xl mx-auto mb-24 text-center">
+        <h2 className="text-luxury-gold uppercase tracking-[0.2em] text-sm mb-4">
+          The Living Gallery
+        </h2>
+        <RevealText
+          text="Moments in Motion"
+          className="font-serif text-5xl md:text-7xl text-white justify-center"
+        />
+      </div>
+
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+        <motion.div style={{ y: y1 }} className="flex flex-col pt-0">
+          {col1.map((img) => (
+            <GalleryItem key={img.id} image={img} />
+          ))}
+        </motion.div>
+
+        <motion.div style={{ y: y2 }} className="flex flex-col pt-32">
+          {col2.map((img) => (
+            <GalleryItem key={img.id} image={img} />
+          ))}
+        </motion.div>
+
+        <motion.div style={{ y: y3 }} className="flex flex-col pt-12">
+          {col3.map((img) => (
+            <GalleryItem key={img.id} image={img} />
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
+export default LivingGallery;
+</file>
+
 <file path="public/vite.svg">
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="31.88" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 257"><defs><linearGradient id="IconifyId1813088fe1fbc01fb466" x1="-.828%" x2="57.636%" y1="7.652%" y2="78.411%"><stop offset="0%" stop-color="#41D1FF"></stop><stop offset="100%" stop-color="#BD34FE"></stop></linearGradient><linearGradient id="IconifyId1813088fe1fbc01fb467" x1="43.376%" x2="50.316%" y1="2.242%" y2="89.03%"><stop offset="0%" stop-color="#FFEA83"></stop><stop offset="8.333%" stop-color="#FFDD35"></stop><stop offset="100%" stop-color="#FFA800"></stop></linearGradient></defs><path fill="url(#IconifyId1813088fe1fbc01fb466)" d="M255.153 37.938L134.897 252.976c-2.483 4.44-8.862 4.466-11.382.048L.875 37.958c-2.746-4.814 1.371-10.646 6.827-9.67l120.385 21.517a6.537 6.537 0 0 0 2.322-.004l117.867-21.483c5.438-.991 9.574 4.796 6.877 9.62Z"></path><path fill="url(#IconifyId1813088fe1fbc01fb467)" d="M185.432.063L96.44 17.501a3.268 3.268 0 0 0-2.634 3.014l-5.474 92.456a3.268 3.268 0 0 0 3.997 3.378l24.777-5.718c2.318-.535 4.413 1.507 3.936 3.838l-7.361 36.047c-.495 2.426 1.782 4.5 4.151 3.78l15.304-4.649c2.372-.72 4.652 1.36 4.15 3.788l-11.698 56.621c-.732 3.542 3.979 5.473 5.943 2.437l1.313-2.028l72.516-144.72c1.215-2.423-.88-5.186-3.54-4.672l-25.505 4.922c-2.396.462-4.435-1.77-3.759-4.114l16.646-57.705c.677-2.35-1.37-4.583-3.769-4.113Z"></path></svg>
 </file>
@@ -81,111 +360,105 @@ This section contains the contents of the repository's files.
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="35.93" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 228"><path fill="#00D8FF" d="M210.483 73.824a171.49 171.49 0 0 0-8.24-2.597c.465-1.9.893-3.777 1.273-5.621c6.238-30.281 2.16-54.676-11.769-62.708c-13.355-7.7-35.196.329-57.254 19.526a171.23 171.23 0 0 0-6.375 5.848a155.866 155.866 0 0 0-4.241-3.917C100.759 3.829 77.587-4.822 63.673 3.233C50.33 10.957 46.379 33.89 51.995 62.588a170.974 170.974 0 0 0 1.892 8.48c-3.28.932-6.445 1.924-9.474 2.98C17.309 83.498 0 98.307 0 113.668c0 15.865 18.582 31.778 46.812 41.427a145.52 145.52 0 0 0 6.921 2.165a167.467 167.467 0 0 0-2.01 9.138c-5.354 28.2-1.173 50.591 12.134 58.266c13.744 7.926 36.812-.22 59.273-19.855a145.567 145.567 0 0 0 5.342-4.923a168.064 168.064 0 0 0 6.92 6.314c21.758 18.722 43.246 26.282 56.54 18.586c13.731-7.949 18.194-32.003 12.4-61.268a145.016 145.016 0 0 0-1.535-6.842c1.62-.48 3.21-.974 4.76-1.488c29.348-9.723 48.443-25.443 48.443-41.52c0-15.417-17.868-30.326-45.517-39.844Zm-6.365 70.984c-1.4.463-2.836.91-4.3 1.345c-3.24-10.257-7.612-21.163-12.963-32.432c5.106-11 9.31-21.767 12.459-31.957c2.619.758 5.16 1.557 7.61 2.4c23.69 8.156 38.14 20.213 38.14 29.504c0 9.896-15.606 22.743-40.946 31.14Zm-10.514 20.834c2.562 12.94 2.927 24.64 1.23 33.787c-1.524 8.219-4.59 13.698-8.382 15.893c-8.067 4.67-25.32-1.4-43.927-17.412a156.726 156.726 0 0 1-6.437-5.87c7.214-7.889 14.423-17.06 21.459-27.246c12.376-1.098 24.068-2.894 34.671-5.345a134.17 134.17 0 0 1 1.386 6.193ZM87.276 214.515c-7.882 2.783-14.16 2.863-17.955.675c-8.075-4.657-11.432-22.636-6.853-46.752a156.923 156.923 0 0 1 1.869-8.499c10.486 2.32 22.093 3.988 34.498 4.994c7.084 9.967 14.501 19.128 21.976 27.15a134.668 134.668 0 0 1-4.877 4.492c-9.933 8.682-19.886 14.842-28.658 17.94ZM50.35 144.747c-12.483-4.267-22.792-9.812-29.858-15.863c-6.35-5.437-9.555-10.836-9.555-15.216c0-9.322 13.897-21.212 37.076-29.293c2.813-.98 5.757-1.905 8.812-2.773c3.204 10.42 7.406 21.315 12.477 32.332c-5.137 11.18-9.399 22.249-12.634 32.792a134.718 134.718 0 0 1-6.318-1.979Zm12.378-84.26c-4.811-24.587-1.616-43.134 6.425-47.789c8.564-4.958 27.502 2.111 47.463 19.835a144.318 144.318 0 0 1 3.841 3.545c-7.438 7.987-14.787 17.08-21.808 26.988c-12.04 1.116-23.565 2.908-34.161 5.309a160.342 160.342 0 0 1-1.76-7.887Zm110.427 27.268a347.8 347.8 0 0 0-7.785-12.803c8.168 1.033 15.994 2.404 23.343 4.08c-2.206 7.072-4.956 14.465-8.193 22.045a381.151 381.151 0 0 0-7.365-13.322Zm-45.032-43.861c5.044 5.465 10.096 11.566 15.065 18.186a322.04 322.04 0 0 0-30.257-.006c4.974-6.559 10.069-12.652 15.192-18.18ZM82.802 87.83a323.167 323.167 0 0 0-7.227 13.238c-3.184-7.553-5.909-14.98-8.134-22.152c7.304-1.634 15.093-2.97 23.209-3.984a321.524 321.524 0 0 0-7.848 12.897Zm8.081 65.352c-8.385-.936-16.291-2.203-23.593-3.793c2.26-7.3 5.045-14.885 8.298-22.6a321.187 321.187 0 0 0 7.257 13.246c2.594 4.48 5.28 8.868 8.038 13.147Zm37.542 31.03c-5.184-5.592-10.354-11.779-15.403-18.433c4.902.192 9.899.29 14.978.29c5.218 0 10.376-.117 15.453-.343c-4.985 6.774-10.018 12.97-15.028 18.486Zm52.198-57.817c3.422 7.8 6.306 15.345 8.596 22.52c-7.422 1.694-15.436 3.058-23.88 4.071a382.417 382.417 0 0 0 7.859-13.026a347.403 347.403 0 0 0 7.425-13.565Zm-16.898 8.101a358.557 358.557 0 0 1-12.281 19.815a329.4 329.4 0 0 1-23.444.823c-7.967 0-15.716-.248-23.178-.732a310.202 310.202 0 0 1-12.513-19.846h.001a307.41 307.41 0 0 1-10.923-20.627a310.278 310.278 0 0 1 10.89-20.637l-.001.001a307.318 307.318 0 0 1 12.413-19.761c7.613-.576 15.42-.876 23.31-.876H128c7.926 0 15.743.303 23.354.883a329.357 329.357 0 0 1 12.335 19.695a358.489 358.489 0 0 1 11.036 20.54a329.472 329.472 0 0 1-11 20.722Zm22.56-122.124c8.572 4.944 11.906 24.881 6.52 51.026c-.344 1.668-.73 3.367-1.15 5.09c-10.622-2.452-22.155-4.275-34.23-5.408c-7.034-10.017-14.323-19.124-21.64-27.008a160.789 160.789 0 0 1 5.888-5.4c18.9-16.447 36.564-22.941 44.612-18.3ZM128 90.808c12.625 0 22.86 10.235 22.86 22.86s-10.235 22.86-22.86 22.86s-22.86-10.235-22.86-22.86s10.235-22.86 22.86-22.86Z"></path></svg>
 </file>
 
-<file path="src/components/About.jsx">
+<file path="src/components/ColorGradeSlider.jsx">
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { teamMembers } from "../data/team";
 
-const About = () => {
+const ColorGradeSlider = ({ beforeImage, afterImage }) => {
+  const [sliderPos, setSliderPos] = useState(50); // Position in percentage
+  const containerRef = useRef(null);
+
+  const handleMove = (e) => {
+    if (!containerRef.current) return;
+
+    // Support both Mouse and Touch events
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = (e.pageX || e.touches[0].pageX) - rect.left;
+    const position = Math.max(0, Math.min(100, (x / rect.width) * 100));
+
+    setSliderPos(position);
+  };
+
   return (
-    <div className="bg-luxury-black min-h-screen text-white pt-24 pb-20 px-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Section 1: The Philosophy */}
-        <div className="grid md:grid-cols-2 gap-16 items-center mb-32">
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-luxury-gold uppercase tracking-widest text-sm mb-6">
-              Our Philosophy
-            </h2>
-            <h1 className="font-serif text-5xl md:text-6xl mb-8 leading-tight">
-              We Don't Just Take Photos, <br />
-              <span className="italic text-gray-400">We Freeze Time.</span>
-            </h1>
-            <p className="text-gray-300 text-lg leading-relaxed mb-6">
-              At BalaG Studios, we believe that a wedding is not just an event;
-              it is a tapestry of fleeting emotions. Our approach is
-              unobtrusive, candid, and deeply artistic. We step back and let the
-              magic unfold, capturing the laughter, the tears, and the silent
-              glances that define your love story.
-            </p>
-            <p className="text-gray-300 text-lg leading-relaxed">
-              Based in the spiritual heart of Rishikesh, we draw inspiration
-              from the flow of the Ganges—constant, calm, and eternal. That is
-              how we want your memories to feel.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="relative h-[600px] w-full"
-          >
-            <div
-              className="absolute inset-0 bg-cover bg-center rounded-sm grayscale hover:grayscale-0 transition-all duration-700 ease-in-out"
-              style={{
-                backgroundImage:
-                  'url("https://images.unsplash.com/photo-1511285560982-1351cdeb9821?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80")',
-              }}
-            />
-            <div className="absolute -bottom-6 -right-6 w-48 h-48 border border-luxury-gold/30 -z-10" />
-            <div className="absolute -top-6 -left-6 w-48 h-48 border border-white/10 -z-10" />
-          </motion.div>
+    <div
+      ref={containerRef}
+      className="relative w-full h-[500px] md:h-[700px] overflow-hidden cursor-ew-resize select-none border-y border-white/10"
+      onMouseMove={handleMove}
+      onTouchMove={handleMove}
+    >
+      {/* 1. THE "BEFORE" IMAGE (Bottom Layer) */}
+      <div
+        className="absolute inset-0 bg-cover bg-center grayscale brightness-50"
+        style={{ backgroundImage: `url(${beforeImage})` }}
+      >
+        <div className="absolute top-10 left-10 px-4 py-2 bg-black/50 backdrop-blur-md text-xs tracking-widest uppercase text-white border border-white/10">
+          Raw Camera File
         </div>
+      </div>
 
-        {/* Section 2: The Crew */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="mb-16"
-        >
-          <h2 className="text-luxury-gold uppercase tracking-widest text-sm mb-4 text-center">
-            The Crew
-          </h2>
-          <h3 className="font-serif text-4xl text-center mb-16">
-            Meet the Storytellers
-          </h3>
-        </motion.div>
+      {/* 2. THE "AFTER" IMAGE (Top Layer with Clipping) */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url(${afterImage})`,
+          clipPath: `inset(0 ${100 - sliderPos}% 0 0)`, // This is the magic line
+        }}
+      >
+        <div className="absolute top-10 right-10 px-4 py-2 bg-luxury-gold text-black text-xs tracking-widest uppercase font-bold">
+          BalaG Signature Grade
+        </div>
+      </div>
 
-        <div className="grid md:grid-cols-3 gap-10">
-          {teamMembers.map((member, index) => (
-            <motion.div
-              key={member.id}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.2 }}
-              viewport={{ once: true }}
-              className="group relative"
-            >
-              <div className="overflow-hidden mb-6 relative h-96">
-                <img
-                  src={member.image}
-                  alt={member.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter grayscale group-hover:grayscale-0"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                  <p className="text-gray-300 text-sm italic">{member.bio}</p>
-                </div>
-              </div>
-              <h3 className="text-2xl font-serif text-white">{member.name}</h3>
-              <p className="text-luxury-gold text-sm uppercase tracking-widest mt-2">
-                {member.role}
-              </p>
-            </motion.div>
-          ))}
+      {/* 3. THE CUSTOM SLIDER HANDLE */}
+      <div
+        className="absolute top-0 bottom-0 w-[2px] bg-luxury-gold z-10"
+        style={{ left: `${sliderPos}%` }}
+      >
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-luxury-gold rounded-full flex items-center justify-center shadow-2xl">
+          <div className="flex gap-1">
+            <div className="w-[1px] h-4 bg-black/50" />
+            <div className="w-[1px] h-4 bg-black/50" />
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default About;
+export default ColorGradeSlider;
+</file>
+
+<file path="src/components/CustomCursor.jsx">
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+
+const CustomCursor = () => {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const mouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener("mousemove", mouseMove);
+
+    return () => {
+      window.removeEventListener("mousemove", mouseMove);
+    };
+  }, []);
+
+  return (
+    <motion.div
+      className="fixed top-0 left-0 w-8 h-8 border border-luxury-gold rounded-full pointer-events-none z-[10000] hidden md:block"
+      animate={{ x: mousePosition.x - 16, y: mousePosition.y - 16 }}
+      transition={{ type: "spring", stiffness: 500, damping: 28 }}
+    >
+      <div className="w-1 h-1 bg-luxury-gold rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+    </motion.div>
+  );
+};
+
+export default CustomCursor;
 </file>
 
 <file path="src/components/Enquire.jsx">
@@ -405,222 +678,355 @@ const Enquire = () => {
 export default Enquire;
 </file>
 
-<file path="src/components/GalleryGrid.jsx">
+<file path="src/components/Footer.jsx">
 import { motion } from "framer-motion";
-import { galleryImages } from "../data/photos";
+import { Link } from "react-router-dom";
 
-const GalleryGrid = () => {
+const Footer = () => {
   return (
-    <section className="bg-luxury-black py-20 px-4 min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="text-luxury-gold uppercase tracking-widest text-sm mb-4"
+    <footer className="bg-luxury-black border-t border-white/10 overflow-hidden pt-20 pb-10">
+      {/* INFINITE MARQUEE */}
+      <div className="relative flex overflow-x-hidden mb-20">
+        <div className="animate-marquee whitespace-nowrap flex gap-10">
+          <span className="text-8xl md:text-[10rem] font-serif text-white/5 uppercase opacity-30">
+            BalaG Studios — Capturing Eternity —
+          </span>
+          <span className="text-8xl md:text-[10rem] font-serif text-white/5 uppercase opacity-30">
+            BalaG Studios — Capturing Eternity —
+          </span>
+        </div>
+
+        <div className="absolute top-0 animate-marquee2 whitespace-nowrap flex gap-10">
+          <span className="text-8xl md:text-[10rem] font-serif text-white/5 uppercase opacity-30">
+            BalaG Studios — Capturing Eternity —
+          </span>
+          <span className="text-8xl md:text-[10rem] font-serif text-white/5 uppercase opacity-30">
+            BalaG Studios — Capturing Eternity —
+          </span>
+        </div>
+      </div>
+
+      {/* STANDARD FOOTER CONTENT */}
+      <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-10 text-center md:text-left">
+        <div>
+          <h3 className="text-2xl font-serif text-white mb-4">BALAG STUDIOS</h3>
+          <p className="text-gray-400 text-sm leading-relaxed">
+            Crafting timeless visual narratives for couples who believe in
+            magic. Based in Rishikesh, available worldwide.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <h4 className="text-luxury-gold uppercase tracking-widest text-xs mb-2">
+            Links
+          </h4>
+          <Link
+            to="/gallery"
+            className="text-gray-400 hover:text-white transition-colors text-sm"
           >
             Portfolio
-          </motion.h2>
-          <motion.h3
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="font-serif text-4xl md:text-6xl text-white"
+          </Link>
+          <Link
+            to="/about"
+            className="text-gray-400 hover:text-white transition-colors text-sm"
           >
-            Captured Moments
-          </motion.h3>
-        </div>
-
-        {/* Masonry Grid */}
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
-          {galleryImages.map((image, index) => (
-            <motion.div
-              key={image.id}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="break-inside-avoid relative group cursor-pointer overflow-hidden"
-            >
-              <img
-                src={image.url}
-                alt={image.title}
-                className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
-                loading="lazy"
-              />
-
-              {/* Overlay on Hover */}
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                <p className="text-luxury-gold text-xs uppercase tracking-widest translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                  {image.category}
-                </p>
-                <h4 className="text-white font-serif text-2xl translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75">
-                  {image.title}
-                </h4>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-export default GalleryGrid;
-</file>
-
-<file path="src/components/Hero.jsx">
-import { motion } from "framer-motion";
-
-const Hero = () => {
-  return (
-    <section className="relative h-screen w-full overflow-hidden">
-      {/* Background Image with Overlay */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage:
-            'url("https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80")',
-        }}
-      >
-        <div className="absolute inset-0 bg-black/40" /> {/* Dark Overlay */}
-      </div>
-
-      {/* Content */}
-      <div className="relative h-full flex flex-col items-center justify-center text-center px-4">
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="text-luxury-gold uppercase tracking-[0.3em] text-sm md:text-base mb-4"
-        >
-          Capturing Timeless Moments
-        </motion.p>
-
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="font-serif text-5xl md:text-7xl lg:text-9xl text-white mb-8"
-        >
-          BalaG Studios
-        </motion.h1>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.2 }}
-        >
-          <button className="px-8 py-3 md:px-10 md:py-4 border border-white text-white uppercase tracking-widest hover:bg-white hover:text-black transition-all duration-500">
-            Explore Galleries
-          </button>
-        </motion.div>
-      </div>
-
-      {/* Scroll Indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 1 }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-      >
-        <span className="text-[10px] uppercase tracking-widest">Scroll</span>
-        <div className="w-[1px] h-12 bg-gradient-to-b from-white to-transparent" />
-      </motion.div>
-    </section>
-  );
-};
-
-export default Hero;
-</file>
-
-<file path="src/components/Navbar.jsx">
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Link } from "react-router-dom";
-import { HiMenuAlt3, HiX } from "react-icons/hi";
-
-const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const links = [
-    { name: "Home", path: "/" },
-    { name: "Gallery", path: "/gallery" },
-    { name: "Testimonials", path: "/testimonials" },
-    { name: "About", path: "/about" },
-  ];
-
-  return (
-    <nav className="fixed top-0 left-0 w-full z-50 bg-luxury-black/80 backdrop-blur-md border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-        {/* Logo */}
-        <Link to="/" className="text-2xl font-serif text-white tracking-widest">
-          BALAG <span className="text-luxury-gold">STUDIOS</span>
-        </Link>
-
-        {/* Desktop Menu */}
-        <div className="hidden md:flex space-x-8">
-          {links.map((link) => (
-            <Link
-              key={link.name}
-              to={link.path}
-              className="text-sm uppercase tracking-widest hover:text-luxury-gold transition-colors duration-300"
-            >
-              {link.name}
-            </Link>
-          ))}
+            About Us
+          </Link>
           <Link
             to="/enquire"
-            className="px-6 py-2 border border-luxury-gold text-luxury-gold text-sm uppercase tracking-widest hover:bg-luxury-gold hover:text-black transition-all duration-300"
+            className="text-gray-400 hover:text-white transition-colors text-sm"
           >
-            Enquire
+            Contact
           </Link>
         </div>
 
-        {/* Mobile Menu Icon */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden text-2xl"
-        >
-          {isOpen ? <HiX /> : <HiMenuAlt3 />}
-        </button>
+        <div className="flex flex-col gap-2">
+          <h4 className="text-luxury-gold uppercase tracking-widest text-xs mb-2">
+            Connect
+          </h4>
+          <a
+            href="#"
+            className="text-gray-400 hover:text-white transition-colors text-sm"
+          >
+            Instagram
+          </a>
+          <a
+            href="#"
+            className="text-gray-400 hover:text-white transition-colors text-sm"
+          >
+            Vimeo
+          </a>
+          <a
+            href="#"
+            className="text-gray-400 hover:text-white transition-colors text-sm"
+          >
+            Facebook
+          </a>
+        </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="absolute top-full left-0 w-full bg-luxury-black border-b border-white/10 md:hidden flex flex-col items-center py-10 space-y-6"
-          >
-            {links.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                onClick={() => setIsOpen(false)}
-                className="text-lg uppercase tracking-widest hover:text-luxury-gold"
-              >
-                {link.name}
-              </Link>
-            ))}
-            <Link
-              to="/enquire"
-              onClick={() => setIsOpen(false)}
-              className="px-8 py-3 border border-luxury-gold text-luxury-gold uppercase tracking-widest"
-            >
-              Enquire
-            </Link>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </nav>
+      <div className="text-center mt-20 text-gray-600 text-[10px] uppercase tracking-widest">
+        © 2026 BalaG Studios. All Rights Reserved.
+      </div>
+    </footer>
   );
 };
 
-export default Navbar;
+export default Footer;
+</file>
+
+<file path="src/components/GrainOverlay.jsx">
+const GrainOverlay = () => {
+  return (
+    <div className="fixed inset-0 pointer-events-none z-[9999] opacity-[0.05] mix-blend-overlay">
+      <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        <filter id="noiseFilter">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.80"
+            numOctaves="3"
+            stitchTiles="stitch"
+          />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#noiseFilter)" />
+      </svg>
+    </div>
+  );
+};
+
+export default GrainOverlay;
+</file>
+
+<file path="src/components/HorizontalScrollGallery.jsx">
+import { useRef, useEffect, useState } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+
+// Stable, High-Res Wedding Images
+const horizontalImages = [
+  {
+    id: 1,
+    url: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop",
+    title: "The Grand Entrance",
+    category: "Weddings",
+  },
+  {
+    id: 2,
+    url: "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?q=80&w=2070&auto=format&fit=crop",
+    title: "Intimate Vows",
+    category: "Engagements",
+  },
+  {
+    id: 3,
+    url: "https://images.unsplash.com/photo-1520854221256-174626102607?q=80&w=2070&auto=format&fit=crop",
+    title: "Riverside Ceremony",
+    category: "Weddings",
+  },
+  {
+    id: 4,
+    url: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=2070&auto=format&fit=crop",
+    title: "Golden Hour Portraits",
+    category: "Portraits",
+  },
+];
+
+const HorizontalScrollGallery = () => {
+  const containerRef = useRef(null);
+  const targetRef = useRef(null);
+
+  const { scrollYProgress } = useScroll({
+    target: targetRef,
+  });
+
+  // This maps the vertical scroll (0 to 1) to a horizontal movement (-percentage)
+  // We use -75% because we have 4 images (each 25% of the total width ideally)
+  const x = useTransform(scrollYProgress, [0, 1], ["0%", "-70%"]);
+
+  return (
+    <section ref={targetRef} className="relative h-[300vh] bg-luxury-black">
+      <div className="sticky top-0 h-screen flex items-center overflow-hidden">
+        <motion.div style={{ x }} className="flex gap-12 px-12">
+          {horizontalImages.map((item, index) => (
+            <div
+              key={item.id}
+              className="group relative h-[65vh] w-[70vw] md:w-[50vw] flex-shrink-0 overflow-hidden rounded-sm bg-luxury-gray/20"
+            >
+              {/* Image with a subtle scale effect on hover */}
+              <motion.img
+                src={item.url}
+                alt={item.title}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ duration: 1 }}
+              />
+
+              {/* Cinematic Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8 md:p-12">
+                <motion.p
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-luxury-gold uppercase tracking-[0.3em] text-xs mb-3"
+                >
+                  {item.category}
+                </motion.p>
+                <motion.h3
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="font-serif text-3xl md:text-5xl text-white leading-tight"
+                >
+                  {item.title}
+                </motion.h3>
+              </div>
+
+              {/* Ghost Number in Background */}
+              <span className="absolute -top-10 -right-10 text-[20rem] font-serif text-white/5 select-none pointer-events-none">
+                0{index + 1}
+              </span>
+            </div>
+          ))}
+        </motion.div>
+      </div>
+    </section>
+  );
+};
+
+export default HorizontalScrollGallery;
+</file>
+
+<file path="src/components/PreLoader.jsx">
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+
+const Preloader = () => {
+  const [dimension, setDimension] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    setDimension({ width: window.innerWidth, height: window.innerHeight });
+  }, []);
+
+  const initialPath = `M0 0 L${dimension.width} 0 L${dimension.width} ${dimension.height} Q${dimension.width / 2} ${dimension.height + 300} 0 ${dimension.height}  L0 0`;
+  const targetPath = `M0 0 L${dimension.width} 0 L${dimension.width} ${dimension.height} Q${dimension.width / 2} ${dimension.height} 0 ${dimension.height}  L0 0`;
+
+  return (
+    <motion.div
+      initial="initial"
+      exit="exit"
+      className="fixed inset-0 z-[99999] flex items-center justify-center pointer-events-none"
+    >
+      {/* LEFT CURTAIN */}
+      <motion.div
+        initial={{ x: 0 }}
+        exit={{
+          x: "-100%",
+          transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1], delay: 0.2 },
+        }}
+        className="absolute left-0 top-0 h-full w-1/2 bg-luxury-black z-20"
+      />
+
+      {/* RIGHT CURTAIN */}
+      <motion.div
+        initial={{ x: 0 }}
+        exit={{
+          x: "100%",
+          transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1], delay: 0.2 },
+        }}
+        className="absolute right-0 top-0 h-full w-1/2 bg-luxury-black z-20"
+      />
+
+      {/* CONTENT LAYER (Text & Line) */}
+      <motion.div
+        initial={{ opacity: 1 }}
+        exit={{ opacity: 0, transition: { duration: 0.3 } }}
+        className="relative z-30 flex flex-col items-center overflow-hidden"
+      >
+        {/* LOGO TEXT */}
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+          className="font-serif text-4xl md:text-6xl text-white tracking-widest mb-4"
+        >
+          BALAG <span className="text-luxury-gold">STUDIOS</span>
+        </motion.h1>
+
+        {/* GOLD LINE DRAWING ANIMATION */}
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: "150px" }}
+          transition={{ duration: 1.5, delay: 1, ease: "easeInOut" }}
+          className="h-[1px] bg-luxury-gold"
+        />
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default Preloader;
+</file>
+
+<file path="src/components/RevealText.jsx">
+import { motion } from "framer-motion";
+
+const RevealText = ({ text, className = "", delay = 0 }) => {
+  // Split the text into individual words
+  const words = text.split(" ");
+
+  // Animation Variants
+  const container = {
+    hidden: { opacity: 0 },
+    visible: (i = 1) => ({
+      opacity: 1,
+      transition: { staggerChildren: 0.12, delayChildren: 0.04 * i + delay },
+    }),
+  };
+
+  const child = {
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: "spring",
+        damping: 12,
+        stiffness: 100,
+      },
+    },
+    hidden: {
+      opacity: 0,
+      y: "110%", // Start slightly below the container
+      transition: {
+        type: "spring",
+        damping: 12,
+        stiffness: 100,
+      },
+    },
+  };
+
+  return (
+    <motion.div
+      style={{ overflow: "hidden", display: "flex", flexWrap: "wrap" }} // Flex wrap handles responsiveness
+      variants={container}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-10%" }} // Triggers when 10% of element is in view
+      className={className}
+    >
+      {words.map((word, index) => (
+        <motion.span
+          variants={child}
+          style={{ marginRight: "0.25em" }} // Add space between words
+          key={index}
+          className="inline-block relative overflow-hidden pb-1" // pb-1 fixes clipping on some fonts
+        >
+          {word}
+        </motion.span>
+      ))}
+    </motion.div>
+  );
+};
+
+export default RevealText;
 </file>
 
 <file path="src/components/Testimonials.jsx">
@@ -725,48 +1131,71 @@ export const galleryImages = [
     url: "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     category: "Weddings",
     title: "The Royal Vows",
+    meta: {
+      lens: "85mm",
+      aperture: "f/1.2",
+      iso: "100",
+      location: "Udaipur Palace",
+    },
   },
   {
     id: 2,
     url: "https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     category: "Portraits",
     title: "Golden Hour",
+    meta: {
+      lens: "50mm",
+      aperture: "f/1.8",
+      iso: "200",
+      location: "Rishikesh Ghats",
+    },
   },
   {
     id: 3,
     url: "https://images.unsplash.com/photo-1520854221250-8c1295909a35?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     category: "Ceremony",
     title: "Traditions",
+    meta: { lens: "35mm", aperture: "f/2.0", iso: "400", location: "Varanasi" },
   },
   {
     id: 4,
     url: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     category: "Candid",
     title: "Laughter & Tears",
+    meta: { lens: "105mm", aperture: "f/2.8", iso: "800", location: "Jaipur" },
   },
   {
     id: 5,
     url: "https://images.unsplash.com/photo-1537905569824-f89f14cceb68?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     category: "Details",
     title: "The Rings",
+    meta: {
+      lens: "100mm Macro",
+      aperture: "f/2.8",
+      iso: "100",
+      location: "Studio",
+    },
   },
   {
     id: 6,
     url: "https://images.unsplash.com/photo-1522673607200-1645062cd495?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     category: "Portraits",
     title: "Together Forever",
+    meta: { lens: "50mm", aperture: "f/1.4", iso: "100", location: "Goa" },
   },
   {
     id: 7,
     url: "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     category: "Weddings",
     title: "The Walk",
+    meta: { lens: "24mm", aperture: "f/4.0", iso: "50", location: "Mussoorie" },
   },
   {
     id: 8,
     url: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
     category: "Fashion",
     title: "Bridal Look",
+    meta: { lens: "85mm", aperture: "f/1.8", iso: "160", location: "Delhi" },
   },
 ];
 </file>
@@ -835,6 +1264,45 @@ export const teamMembers = [
 ];
 </file>
 
+<file path="src/pages/Home.jsx">
+import Hero from "../components/Hero";
+import HorizontalScrollGallery from "../components/HorizontalScrollGallery";
+import LivingGallery from "../components/LivingGallery"; // <--- The new Asymmetric Gallery
+import About from "../components/About";
+
+const Home = () => {
+  return (
+    <>
+      {/* 1. The "Director's Cut" Hero 
+          This component uses GSAP to pin the video and shrink it. 
+          It sits at the top of the document flow. 
+      */}
+      <Hero />
+
+      {/* 2. Content Wrapper
+          We add 'relative z-10' to ensure this content stacks ON TOP 
+          of the Hero if there are any overlap effects.
+          'bg-luxury-black' ensures the background is seamless.
+      */}
+      <div className="relative z-10 bg-luxury-black">
+        {/* Existing Feature: The Horizontal Parallax Reel */}
+        <HorizontalScrollGallery />
+
+        {/* NEW FEATURE: The Asymmetric "Living" Gallery 
+            This replaces the old <GalleryGrid /> 
+        */}
+        <LivingGallery />
+
+        {/* Existing Feature: About Section */}
+        <About />
+      </div>
+    </>
+  );
+};
+
+export default Home;
+</file>
+
 <file path="src/App.css">
 #root {
   max-width: 1280px;
@@ -880,46 +1348,6 @@ export const teamMembers = [
 }
 </file>
 
-<file path="src/App.jsx">
-import { useEffect } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import Hero from "./components/Hero";
-import GalleryGrid from "./components/GalleryGrid";
-import About from "./components/About";
-import Enquire from "./components/Enquire";
-import Testimonials from "./components/Testimonials";
-
-// This component handles the scroll-to-top behavior
-const ScrollToTop = () => {
-  const { pathname } = useLocation();
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
-
-  return null;
-};
-
-function App() {
-  return (
-    <div className="bg-luxury-black min-h-screen text-white font-sans">
-      <ScrollToTop />
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Hero />} />
-        <Route path="/gallery" element={<GalleryGrid />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/enquire" element={<Enquire />} />
-        <Route path="/testimonials" element={<Testimonials />} />
-      </Routes>
-    </div>
-  );
-}
-
-export default App;
-</file>
-
 <file path="src/index.css">
 @tailwind base;
 @tailwind components;
@@ -939,6 +1367,19 @@ h4,
 h5,
 h6 {
   font-family: "Playfair Display", serif;
+}
+
+/* --- NEW: High-Impact Typography Utilities --- */
+
+/* Creates the hollow text effect */
+.stroke-text {
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.8);
+  color: transparent;
+}
+
+/* Ensure canvas doesn't capture scroll if we don't want it to */
+canvas {
+  touch-action: none;
 }
 </file>
 
@@ -1047,11 +1488,18 @@ export default defineConfig([
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
+    "@gsap/react": "^2.1.2",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
+    "@types/three": "^0.182.0",
     "framer-motion": "^12.34.0",
+    "gsap": "^3.14.2",
+    "lenis": "^1.3.17",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-icons": "^5.5.0",
-    "react-router-dom": "^7.13.0"
+    "react-router-dom": "^7.13.0",
+    "three": "^0.182.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -1098,28 +1546,6 @@ The React Compiler is not enabled on this template because of its impact on dev 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
 </file>
 
-<file path="tailwind.config.js">
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-  theme: {
-    extend: {
-      colors: {
-        "luxury-black": "#0a0a0a",
-        "luxury-gold": "#d4af37",
-        "luxury-gray": "#2a2a2a",
-        "soft-white": "#f5f5f5",
-      },
-      fontFamily: {
-        serif: ['"Playfair Display"', "serif"],
-        sans: ['"Montserrat"', "sans-serif"],
-      },
-    },
-  },
-  plugins: [],
-};
-</file>
-
 <file path="vite.config.js">
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -1128,6 +1554,861 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
 })
+</file>
+
+<file path="src/components/GalleryGrid.jsx">
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { galleryImages } from "../data/photos";
+import { HiX } from "react-icons/hi";
+import RevealText from "./RevealText"; // Import
+
+const GalleryGrid = () => {
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  return (
+    <section className="bg-luxury-black py-20 px-4 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        {/* Section Header */}
+        <div className="text-center mb-16 flex flex-col items-center">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            className="text-luxury-gold uppercase tracking-widest text-sm mb-4"
+          >
+            Portfolio
+          </motion.h2>
+
+          {/* REPLACED H3 WITH REVEALTEXT */}
+          <RevealText
+            text="Captured Moments"
+            className="font-serif text-4xl md:text-6xl text-white justify-center"
+          />
+        </div>
+
+        {/* Masonry Grid (Existing Code) */}
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
+          {galleryImages.map((image, index) => (
+            <motion.div
+              key={image.id}
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              onClick={() => setSelectedImage(image)}
+              className="break-inside-avoid relative group cursor-pointer overflow-hidden rounded-sm"
+            >
+              <img
+                src={image.url}
+                alt={image.title}
+                className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+                <p className="text-luxury-gold text-xs uppercase tracking-widest translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                  {image.category}
+                </p>
+                <h4 className="text-white font-serif text-2xl translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75">
+                  {image.title}
+                </h4>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Lightbox Modal (Existing Code) */}
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedImage(null)}
+            className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4 cursor-pointer backdrop-blur-sm"
+          >
+            <button className="absolute top-6 right-6 text-white text-4xl hover:text-luxury-gold transition-colors z-50">
+              <HiX />
+            </button>
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="relative max-h-[90vh] max-w-[90vw]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={selectedImage.url}
+                alt={selectedImage.title}
+                className="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl border border-white/10"
+              />
+              <div className="mt-4 text-center">
+                <h3 className="text-white font-serif text-2xl">
+                  {selectedImage.title}
+                </h3>
+                <p className="text-luxury-gold text-sm uppercase tracking-widest">
+                  {selectedImage.category}
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
+  );
+};
+
+export default GalleryGrid;
+</file>
+
+<file path="src/components/Hero.jsx">
+import { useEffect, useRef, useMemo, useState } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useAspect, useVideoTexture } from "@react-three/drei";
+import { motion } from "framer-motion";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+import * as THREE from "three";
+import RevealText from "./RevealText";
+
+// Register GSAP plugins
+gsap.registerPlugin(ScrollTrigger);
+
+// --- SHADER: The "Physical Lens" Distortion & Chromatic Aberration ---
+const LensDistortionShader = {
+  uniforms: {
+    uTexture: { value: null },
+    uMouse: { value: new THREE.Vector2(0, 0) },
+    uVelo: { value: 0 }, // Mouse velocity for intensity
+    uScale: { value: new THREE.Vector2(1, 1) },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D uTexture;
+    uniform vec2 uMouse;
+    uniform float uVelo;
+    varying vec2 vUv;
+
+    // Aberration intensity
+    float aberration = 0.015; 
+
+    void main() {
+      vec2 uv = vUv;
+      
+      // Calculate distance from mouse pointer
+      vec2 dist = uv - uMouse;
+      float d = length(dist);
+
+      // Create a "bulge" effect based on mouse distance and velocity
+      // The 1.2 mimics a f/1.2 lens curvature
+      float lensEffect = smoothstep(0.6, 0.0, d) * uVelo * 0.1;
+      
+      // Distort UVs
+      uv += dist * lensEffect;
+
+      // Chromatic Aberration (RGB Shift)
+      // We sample the texture 3 times with slight offsets to create the "rainbow" edge
+      vec4 r = texture2D(uTexture, uv + vec2(aberration * uVelo, 0.0));
+      vec4 g = texture2D(uTexture, uv);
+      vec4 b = texture2D(uTexture, uv - vec2(aberration * uVelo, 0.0));
+
+      gl_FragColor = vec4(r.r, g.g, b.b, 1.0);
+    }
+  `,
+};
+
+// --- COMPONENT: The 3D Video Plane ---
+const CinematicVideo = ({ videoUrl }) => {
+  const meshRef = useRef();
+  const texture = useVideoTexture(videoUrl);
+  const { viewport } = useThree();
+
+  // Calculate aspect ratio to cover the screen without stretching
+  const scale = useAspect(1920, 1080, 1); // Assuming 1080p video
+
+  // Shader Uniforms Reference
+  const uniforms = useMemo(
+    () => ({
+      uTexture: { value: texture },
+      uMouse: { value: new THREE.Vector2(0, 0) },
+      uVelo: { value: 0 },
+    }),
+    [texture],
+  );
+
+  // Mouse tracking logic for the shader
+  useFrame((state) => {
+    if (!meshRef.current) return;
+
+    // Convert mouse range from [-1, 1] to [0, 1] for UV space
+    const targetX = (state.pointer.x + 1) / 2;
+    const targetY = (state.pointer.y + 1) / 2;
+
+    // Smoothly interpolate (Lerp) current values to target for "heavy" feel
+    uniforms.uMouse.value.x = THREE.MathUtils.lerp(
+      uniforms.uMouse.value.x,
+      targetX,
+      0.05,
+    );
+    uniforms.uMouse.value.y = THREE.MathUtils.lerp(
+      uniforms.uMouse.value.y,
+      targetY,
+      0.05,
+    );
+
+    // Calculate "velocity" (how fast mouse is moving) to trigger distortion intensity
+    const velo = Math.abs(state.pointer.x - uniforms.uMouse.value.x * 2 + 1);
+    uniforms.uVelo.value = THREE.MathUtils.lerp(
+      uniforms.uVelo.value,
+      velo * 4, // Multiplier for sensitivity
+      0.1,
+    );
+  });
+
+  return (
+    <mesh ref={meshRef} scale={scale}>
+      <planeGeometry args={[1, 1, 32, 32]} />
+      <shaderMaterial
+        fragmentShader={LensDistortionShader.fragmentShader}
+        vertexShader={LensDistortionShader.vertexShader}
+        uniforms={uniforms}
+        wireframe={false}
+      />
+    </mesh>
+  );
+};
+
+// --- MAIN COMPONENT: Hero ---
+const Hero = () => {
+  const containerRef = useRef(null);
+  const canvasWrapperRef = useRef(null);
+  const textRef = useRef(null);
+
+  useGSAP(() => {
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top top", // Start animation when hero hits top
+        end: "+=150%", // Scroll distance to complete the shrink
+        pin: true, // Lock the hero in place while animating
+        scrub: 1, // Smooth scrubbing effect
+        // markers: true, // Uncomment to debug start/end points
+      },
+    });
+
+    // 1. Shrink the video container into a "Gallery Frame"
+    tl.to(
+      canvasWrapperRef.current,
+      {
+        scale: 0.6, // Shrink to 60% size
+        borderRadius: "12px", // Add rounded corners
+        y: "10vh", // Move it down slightly
+        ease: "power2.inOut",
+      },
+      0,
+    );
+
+    // 2. Fade out and move the oversized text
+    tl.to(
+      textRef.current,
+      {
+        y: -100,
+        opacity: 0,
+        scale: 0.9,
+        ease: "power2.in",
+      },
+      0,
+    );
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full h-screen bg-luxury-black overflow-hidden"
+    >
+      {/* 3D CANVAS LAYER */}
+      <div
+        ref={canvasWrapperRef}
+        className="absolute inset-0 w-full h-full z-0 overflow-hidden shadow-2xl"
+      >
+        <Canvas gl={{ antialias: true, alpha: false }} dpr={[1, 1.5]}>
+          <CinematicVideo videoUrl="/hero.mp4" />
+        </Canvas>
+
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+      </div>
+
+      {/* TYPOGRAPHY LAYER */}
+      <div
+        ref={textRef}
+        className="relative z-10 w-full h-full flex flex-col items-center justify-center pointer-events-none mix-blend-difference"
+      >
+        <div className="text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 1.1 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+          >
+            <h1 className="font-serif text-[12vw] md:text-[14vw] leading-[0.85] text-white uppercase tracking-tighter">
+              BalaG
+            </h1>
+            <h1 className="font-serif text-[12vw] md:text-[14vw] leading-[0.85] text-transparent stroke-text uppercase tracking-tighter">
+              Studios
+            </h1>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1, duration: 1 }}
+            className="mt-8 flex justify-between items-center w-full max-w-lg mx-auto px-4"
+          >
+            <span className="text-luxury-gold text-xs uppercase tracking-[0.4em]">
+              Est. 2015
+            </span>
+            <span className="text-luxury-gold text-xs uppercase tracking-[0.4em]">
+              Rishikesh
+            </span>
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Hero;
+</file>
+
+<file path="tailwind.config.js">
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {
+      // 1. Custom Colors
+      colors: {
+        "luxury-black": "#0a0a0a",
+        "luxury-gold": "#d4af37",
+        "luxury-gray": "#2a2a2a",
+        "soft-white": "#f5f5f5",
+      },
+
+      // 2. Custom Typography
+      fontFamily: {
+        serif: ['"Playfair Display"', "serif"],
+        sans: ['"Montserrat"', "sans-serif"],
+      },
+
+      // 3. Custom Animations (For the Infinite Footer)
+      animation: {
+        marquee: "marquee 25s linear infinite",
+        marquee2: "marquee2 25s linear infinite",
+      },
+
+      // 4. Keyframes (Defining how the marquee moves)
+      keyframes: {
+        marquee: {
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-100%)" },
+        },
+        marquee2: {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0%)" },
+        },
+      },
+    },
+  },
+  plugins: [],
+};
+</file>
+
+<file path="src/components/About.jsx">
+import { motion } from "framer-motion";
+import { teamMembers } from "../data/team";
+import RevealText from "./RevealText";
+import ColorGradeSlider from "./ColorGradeSlider";
+
+const About = () => {
+  return (
+    <div className="bg-luxury-black min-h-screen text-white pt-24 pb-20">
+      <div className="max-w-7xl mx-auto px-6">
+        {/* SECTION 1: THE PHILOSOPHY */}
+        <div className="grid md:grid-cols-2 gap-16 items-center mb-32">
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-luxury-gold uppercase tracking-widest text-sm mb-6 font-sans">
+              Our Philosophy
+            </h2>
+
+            <div className="font-serif text-5xl md:text-6xl mb-8 leading-tight">
+              <RevealText text="We Don't Just Take Photos," />
+              <motion.span
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.8 }}
+                className="italic text-gray-400 block mt-2"
+              >
+                We Freeze Time.
+              </motion.span>
+            </div>
+
+            <p className="text-gray-300 text-lg font-sans leading-relaxed mb-6">
+              At BalaG Studios, we believe that a wedding is not just an event;
+              it is a tapestry of fleeting emotions. Our approach is
+              unobtrusive, candid, and deeply artistic. We step back and let the
+              magic unfold, capturing the laughter, the tears, and the silent
+              glances that define your love story.
+            </p>
+            <p className="text-gray-300 text-lg font-sans leading-relaxed">
+              Based in the spiritual heart of Rishikesh, we draw inspiration
+              from the flow of the Ganges—constant, calm, and eternal. That is
+              how we want your memories to feel.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="relative h-[600px] w-full"
+          >
+            <div
+              className="absolute inset-0 bg-cover bg-center rounded-sm grayscale hover:grayscale-0 transition-all duration-700 ease-in-out"
+              style={{
+                backgroundImage:
+                  'url("https://images.unsplash.com/photo-1511285560982-1351cdeb9821?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80")',
+              }}
+            />
+            <div className="absolute -bottom-6 -right-6 w-48 h-48 border border-luxury-gold/30 -z-10" />
+            <div className="absolute -top-6 -left-6 w-48 h-48 border border-white/10 -z-10" />
+          </motion.div>
+        </div>
+
+        {/* SECTION 2: THE COLOR GRADE SHOWCASE */}
+        <div className="py-24">
+          <div className="text-center mb-16">
+            <h2 className="text-luxury-gold uppercase tracking-widest text-sm mb-4 font-sans">
+              The Art of Edit
+            </h2>
+            <RevealText
+              text="Beyond the Click"
+              className="font-serif text-4xl md:text-6xl text-white justify-center"
+            />
+            <p className="mt-6 text-gray-400 max-w-2xl mx-auto italic font-sans">
+              Drag the gold slider to see how we transform a raw camera capture
+              into a cinematic signature grade.
+            </p>
+          </div>
+
+          {/* This slider proves the value of the post-production process */}
+          <ColorGradeSlider
+            beforeImage="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80"
+            afterImage="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80"
+          />
+        </div>
+
+        {/* SECTION 3: THE CREW */}
+        <div className="pt-32">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="mb-16 flex flex-col items-center"
+          >
+            <h2 className="text-luxury-gold uppercase tracking-widest text-sm mb-4 text-center font-sans">
+              The Crew
+            </h2>
+            <RevealText
+              text="Meet the Storytellers"
+              className="font-serif text-4xl text-center justify-center mb-16"
+            />
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-10">
+            {teamMembers.map((member, index) => (
+              <motion.div
+                key={member.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                viewport={{ once: true }}
+                className="group relative"
+              >
+                <div className="overflow-hidden mb-6 relative h-96">
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 filter grayscale group-hover:grayscale-0"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+                    <p className="text-gray-300 text-sm italic font-sans">
+                      {member.bio}
+                    </p>
+                  </div>
+                </div>
+                <h3 className="text-2xl font-serif text-white">
+                  {member.name}
+                </h3>
+                <p className="text-luxury-gold text-sm uppercase tracking-widest mt-2 font-sans">
+                  {member.role}
+                </p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default About;
+</file>
+
+<file path="src/components/Navbar.jsx">
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
+import { HiMenuAlt4, HiX } from "react-icons/hi";
+
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  // NEW: State to track which image to show on hover
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const links = [
+    {
+      name: "Home",
+      path: "/",
+      image:
+        "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      name: "Gallery",
+      path: "/gallery",
+      image:
+        "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      name: "Testimonials",
+      path: "/testimonials",
+      image:
+        "https://images.unsplash.com/photo-1522673607200-1645062cd495?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      name: "About",
+      path: "/about",
+      image:
+        "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=1200&q=80",
+    },
+  ];
+
+  const menuVars = {
+    initial: { scaleY: 0 },
+    animate: {
+      scaleY: 1,
+      transition: { duration: 0.5, ease: [0.12, 0, 0.39, 0] },
+    },
+    exit: {
+      scaleY: 0,
+      transition: { delay: 0.5, duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+    },
+  };
+
+  const containerVars = {
+    initial: { transition: { staggerChildren: 0.09, staggerDirection: -1 } },
+    open: {
+      transition: {
+        delayChildren: 0.3,
+        staggerChildren: 0.09,
+        staggerDirection: 1,
+      },
+    },
+  };
+
+  const linkVars = {
+    initial: {
+      y: "30vh",
+      transition: { duration: 0.5, ease: [0.37, 0, 0.63, 1] },
+    },
+    open: { y: 0, transition: { duration: 0.7, ease: [0, 0.55, 0.45, 1] } },
+  };
+
+  return (
+    <nav
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
+        scrolled
+          ? "bg-luxury-black/80 backdrop-blur-md border-b border-white/10 py-4"
+          : "bg-transparent py-6"
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-6 flex justify-between items-center relative z-[60]">
+        <Link
+          to="/"
+          className="text-2xl font-serif text-white tracking-widest relative mix-blend-difference"
+        >
+          BALAG <span className="text-luxury-gold">STUDIOS</span>
+        </Link>
+
+        <div className="hidden md:flex space-x-12 items-center">
+          {links.map((link) => (
+            <Link
+              key={link.name}
+              to={link.path}
+              className="text-sm uppercase tracking-widest hover:text-luxury-gold transition-all duration-300 group relative"
+            >
+              {link.name}
+              <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-luxury-gold transition-all duration-300 group-hover:w-full" />
+            </Link>
+          ))}
+          <Link
+            to="/enquire"
+            className="px-6 py-2 border border-luxury-gold text-luxury-gold text-xs uppercase tracking-[0.2em] hover:bg-luxury-gold hover:text-black transition-all duration-500"
+          >
+            Enquire
+          </Link>
+        </div>
+
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="md:hidden text-2xl text-white relative focus:outline-none"
+        >
+          {isOpen ? <HiX /> : <HiMenuAlt4 />}
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            variants={menuVars}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="fixed inset-0 bg-luxury-black origin-top z-50 flex flex-col justify-center items-center overflow-hidden"
+          >
+            {/* NEW: DYNAMIC BACKGROUND IMAGE PREVIEW */}
+            <div className="absolute inset-0 w-full h-full z-0">
+              <AnimatePresence>
+                {hoveredIndex !== null && (
+                  <motion.div
+                    key={hoveredIndex}
+                    initial={{ opacity: 0, scale: 1.1 }}
+                    animate={{ opacity: 0.3, scale: 1 }} // Low opacity to keep text readable
+                    exit={{ opacity: 0, scale: 1.05 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="absolute inset-0 w-full h-full bg-cover bg-center grayscale"
+                    style={{
+                      backgroundImage: `url(${links[hoveredIndex].image})`,
+                    }}
+                  />
+                )}
+              </AnimatePresence>
+              {/* Fallback dark overlay */}
+              <div className="absolute inset-0 bg-black/40 z-[1]" />
+            </div>
+
+            {/* MENU LINKS */}
+            <motion.div
+              variants={containerVars}
+              initial="initial"
+              animate="open"
+              exit="initial"
+              className="flex flex-col items-center gap-6 z-10"
+            >
+              {links.map((link, index) => (
+                <div
+                  key={link.name}
+                  className="overflow-hidden"
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                >
+                  <motion.div variants={linkVars}>
+                    <Link
+                      to={link.path}
+                      onClick={() => setIsOpen(false)}
+                      className="text-5xl md:text-7xl font-serif text-white hover:text-luxury-gold transition-colors duration-300 italic md:not-italic hover:italic"
+                    >
+                      {link.name}
+                    </Link>
+                  </motion.div>
+                </div>
+              ))}
+
+              <div className="overflow-hidden mt-8">
+                <motion.div variants={linkVars}>
+                  <Link
+                    to="/enquire"
+                    onClick={() => setIsOpen(false)}
+                    className="text-xl uppercase tracking-widest text-luxury-gold border-b border-luxury-gold pb-1 hover:text-white hover:border-white transition-colors"
+                  >
+                    Start Project
+                  </Link>
+                </motion.div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
+  );
+};
+
+export default Navbar;
+</file>
+
+<file path="src/App.jsx">
+import { useEffect, useState } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import Lenis from "lenis";
+
+// Import Page Components
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home"; // <--- UPDATED IMPORT
+import GalleryGrid from "./components/GalleryGrid";
+import About from "./components/About";
+import Enquire from "./components/Enquire";
+import Testimonials from "./components/Testimonials";
+import Preloader from "./components/PreLoader";
+import Footer from "./components/Footer"; // Assuming you have this now
+
+// --- COMPONENT: Scroll To Top ---
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
+
+// --- COMPONENT: Film Grain Overlay ---
+const GrainOverlay = () => {
+  return (
+    <div className="fixed inset-0 pointer-events-none z-[9998] opacity-[0.05] mix-blend-overlay">
+      <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        <filter id="noiseFilter">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.80"
+            numOctaves="3"
+            stitchTiles="stitch"
+          />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#noiseFilter)" />
+      </svg>
+    </div>
+  );
+};
+
+// --- COMPONENT: Magnetic Custom Cursor ---
+const CustomCursor = () => {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const mouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener("mousemove", mouseMove);
+    return () => {
+      window.removeEventListener("mousemove", mouseMove);
+    };
+  }, []);
+
+  return (
+    <motion.div
+      className="fixed top-0 left-0 w-8 h-8 border border-luxury-gold rounded-full pointer-events-none z-[10000] hidden md:block mix-blend-difference"
+      animate={{ x: mousePosition.x - 16, y: mousePosition.y - 16 }}
+      transition={{ type: "spring", stiffness: 500, damping: 28 }}
+    >
+      <div className="w-1 h-1 bg-luxury-gold rounded-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+    </motion.div>
+  );
+};
+
+// --- MAIN APP STRUCTURE ---
+function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Initialize Lenis Smooth Scrolling
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      direction: "vertical",
+      gestureDirection: "vertical",
+      smooth: true,
+      mouseMultiplier: 1,
+      smoothTouch: false,
+      touchMultiplier: 2,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    requestAnimationFrame(raf);
+
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
+
+    return () => {
+      lenis.destroy();
+      clearTimeout(timer);
+    };
+  }, []);
+
+  return (
+    <div className="bg-luxury-black min-h-screen text-white font-sans selection:bg-luxury-gold selection:text-black">
+      <AnimatePresence mode="wait">
+        {isLoading && <Preloader />}
+      </AnimatePresence>
+
+      <ScrollToTop />
+      <GrainOverlay />
+      <CustomCursor />
+
+      <Navbar />
+
+      <Routes>
+        <Route path="/" element={<Home />} /> {/* <--- UPDATED ROUTE */}
+        <Route path="/gallery" element={<GalleryGrid />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/enquire" element={<Enquire />} />
+        <Route path="/testimonials" element={<Testimonials />} />
+      </Routes>
+
+      <Footer />
+    </div>
+  );
+}
+
+export default App;
 </file>
 
 </files>

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import RevealText from "./RevealText"; // Import the new component
+import RevealText from "./RevealText";
 
 const Hero = () => {
   return (
@@ -15,6 +15,7 @@ const Hero = () => {
         >
           <source src="/hero.mp4" type="video/mp4" />
         </video>
+        {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-black/40" />
       </div>
 
@@ -29,7 +30,7 @@ const Hero = () => {
           Capturing Timeless Moments
         </motion.p>
 
-        {/* REPLACED STANDARD H1 WITH REVEALTEXT */}
+        {/* Brand Title */}
         <div className="mb-8 flex justify-center">
           <RevealText
             text="BalaG Studios"
@@ -41,7 +42,7 @@ const Hero = () => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.5 }} // Increased delay to wait for text
+          transition={{ duration: 1, delay: 1.5 }}
         >
           <button className="px-8 py-3 md:px-10 md:py-4 border border-white text-white uppercase tracking-widest hover:bg-white hover:text-black transition-all duration-500 backdrop-blur-sm">
             Explore Galleries

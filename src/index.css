@@ -17,3 +17,16 @@ h5,
 h6 {
   font-family: "Playfair Display", serif;
 }
+
+/* --- NEW: High-Impact Typography Utilities --- */
+
+/* Creates the hollow text effect */
+.stroke-text {
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.8);
+  color: transparent;
+}
+
+/* Ensure canvas doesn't capture scroll if we don't want it to */
+canvas {
+  touch-action: none;
+}
