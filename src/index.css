@@ -30,3 +30,30 @@ h6 {
 canvas {
   touch-action: none;
 }
+
+.slider-thumb-gold::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #d4af37; /* Luxury Gold */
+  border: 2px solid white;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+  transition: transform 0.2s;
+}
+
+.slider-thumb-gold::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.slider-thumb-gold::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #d4af37;
+  border: 2px solid white;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+}

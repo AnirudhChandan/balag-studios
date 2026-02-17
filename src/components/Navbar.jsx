@@ -25,6 +25,18 @@ const Navbar = () => {
         "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
     },
     {
+      name: "Map", // <--- NEW LINK
+      path: "/map",
+      image:
+        "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
+      name: "Planner", // <--- NEW LINK
+      path: "/planner",
+      image:
+        "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1200&q=80",
+    },
+    {
       name: "Gallery",
       path: "/gallery",
       image:
