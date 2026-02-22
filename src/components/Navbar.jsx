@@ -21,44 +21,44 @@ const Navbar = () => {
     {
       name: "Home",
       path: "/",
-      image:
-        "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
+      image: "/images/gallery1.jpeg", // Updated to your local paths
     },
     {
-      name: "The Method", // <--- NEW LINK
+      name: "The Method",
       path: "/method",
-      image:
-        "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=1200&q=80",
+      image: "/images/gallery2.jpeg",
     },
     {
-      name: "Map", // <--- NEW LINK
+      name: "Map",
       path: "/map",
-      image:
-        "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1200&q=80",
+      image: "/images/gallery3.jpeg",
     },
     {
-      name: "Planner", // <--- NEW LINK
+      name: "Planner",
       path: "/planner",
-      image:
-        "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1200&q=80",
+      image: "/images/gallery4.jpeg",
     },
     {
       name: "Gallery",
       path: "/gallery",
-      image:
-        "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=1200&q=80",
+      image: "/images/gallery5.jpeg",
     },
+    // ---> ADD THIS NEW BLOCK <---
+    {
+      name: "Films",
+      path: "/films",
+      image: "/images/story-1.jpeg", // Use an evocative image here
+    },
+    // ----------------------------
     {
       name: "Testimonials",
       path: "/testimonials",
-      image:
-        "https://images.unsplash.com/photo-1522673607200-1645062cd495?auto=format&fit=crop&w=1200&q=80",
+      image: "/images/testimonial-1.jpeg",
     },
     {
       name: "About",
       path: "/about",
-      image:
-        "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=1200&q=80",
+      image: "/images/testimonial-2.jpeg",
     },
   ];
 

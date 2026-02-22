@@ -2,28 +2,31 @@ import { useRef, useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
 // Stable, High-Res Wedding Images
+
+// Inside src/components/HorizontalScrollGallery.jsx
+
 const horizontalImages = [
   {
     id: 1,
-    url: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop",
+    url: "/images/gallery7.jpeg", // Reuse gallery-7
     title: "The Grand Entrance",
     category: "Weddings",
   },
   {
     id: 2,
-    url: "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?q=80&w=2070&auto=format&fit=crop",
+    url: "/images/gallery6.jpeg", // Reuse gallery-6
     title: "Intimate Vows",
     category: "Engagements",
   },
   {
     id: 3,
-    url: "https://images.unsplash.com/photo-1520854221256-174626102607?q=80&w=2070&auto=format&fit=crop",
+    url: "/images/gallery3.jpeg",
     title: "Riverside Ceremony",
     category: "Weddings",
   },
   {
     id: 4,
-    url: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=2070&auto=format&fit=crop",
+    url: "/images/gallery2.jpeg",
     title: "Golden Hour Portraits",
     category: "Portraits",
   },

@@ -10,15 +10,16 @@ import GalleryGrid from "./components/GalleryGrid";
 import About from "./components/About";
 import Enquire from "./components/Enquire";
 import Testimonials from "./components/Testimonials";
-import Locations from "./pages/Locations"; // Location Scout Feature
-import WeddingStory from "./pages/WeddingStory"; // Location Scout Feature
-import GoldenHourPage from "./pages/GoldenHourPage"; // <--- THIS WAS MISSING
+import Locations from "./pages/Locations";
+import WeddingStory from "./pages/WeddingStory";
+import GoldenHourPage from "./pages/GoldenHourPage";
 import Preloader from "./components/PreLoader";
 import Footer from "./components/Footer";
 import CustomCursor from "./components/CustomCursor";
 import GrainOverlay from "./components/GrainOverlay";
 import DirectorSlider from "./components/DirectorSlider";
-
+import SonicAtmosphere from "./components/SonicAtmosphere"; // <--- NEW IMPORT
+import Films from "./pages/Films";
 // Scroll To Top Component
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -71,18 +72,21 @@ function App() {
       <GrainOverlay />
       <CustomCursor />
 
+      {/* THE AUDIO WIDGET */}
+      <SonicAtmosphere />
+
       <Navbar />
 
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/gallery" element={<GalleryGrid />} />
+        <Route path="/films" element={<Films />} />
         <Route path="/about" element={<About />} />
         <Route path="/enquire" element={<Enquire />} />
         <Route path="/testimonials" element={<Testimonials />} />
-        {/* Advanced Features Routes */}
         <Route path="/map" element={<Locations />} />
         <Route path="/weddings/:id" element={<WeddingStory />} />
-        <Route path="/planner" element={<GoldenHourPage />} />{" "}
+        <Route path="/planner" element={<GoldenHourPage />} />
         <Route
           path="/method"
           element={

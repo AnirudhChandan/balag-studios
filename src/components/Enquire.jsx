@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import emailjs from "@emailjs/browser";
 import { HiArrowRight, HiCheck, HiOutlineArrowLeft } from "react-icons/hi";
+import SEO from "./SEO";
 
 // --- CONFIGURATION ---
 const eventTypes = [
@@ -122,6 +123,11 @@ const Enquire = () => {
 
   return (
     <section className="bg-luxury-black min-h-screen pt-24 pb-12 px-6 flex flex-col items-center justify-center overflow-hidden">
+      <SEO
+        title="Inquire"
+        description="Start your journey with BalaG Studios. Check availability for your 2026 wedding dates."
+        url="/enquire"
+      />
       {/* PROGRESS HEADER */}
       <div className="w-full max-w-2xl mb-12 flex justify-between items-center text-xs uppercase tracking-widest text-gray-500">
         <button

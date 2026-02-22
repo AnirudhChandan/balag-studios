@@ -3,12 +3,18 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { locationData } from "../data/locations";
 import { HiLocationMarker } from "react-icons/hi";
+import SEO from "../components/SEO";
 
 const Locations = () => {
   const [hoveredLocation, setHoveredLocation] = useState(null);
 
   return (
     <div className="bg-luxury-black min-h-screen pt-24 pb-10 px-4 overflow-hidden flex flex-col items-center">
+      <SEO
+        title="Location Scout"
+        description="Explore our interactive map of real weddings across India. See how we capture love in Rishikesh, Goa, Udaipur, and beyond."
+        url="/map"
+      />
       {/* Header */}
       <div className="text-center mb-10 z-10 relative">
         <h2 className="text-luxury-gold uppercase tracking-widest text-sm mb-2">

@@ -41,7 +41,24 @@ The content is organized as follows:
 
 <directory_structure>
 public/
+  audio/
+    ambience.mp3
+  images/
+    enquire-bg.jpeg
+    gallery1.jpeg
+    gallery2.jpeg
+    gallery3.jpeg
+    gallery4.jpeg
+    gallery5.jpeg
+    gallery6.jpeg
+    gallery7.jpeg
+    story-1.jpeg
+    story-2.jpeg
+    testimonial-1.jpeg
+    testimonial-2.jpeg
   hero.mp4
+  robots.txt
+  sitemap.xml
   vite.svg
 src/
   assets/
@@ -64,6 +81,8 @@ src/
     Navbar.jsx
     PreLoader.jsx
     RevealText.jsx
+    SEO.jsx
+    SonicAtmosphere.jsx
     StickyScrollGallery.jsx
     Testimonials.jsx
   data/
@@ -71,7 +90,9 @@ src/
     photos.js
     reviews.js
     team.js
+    videos.js
   pages/
+    Films.jsx
     GoldenHourPage.jsx
     Home.jsx
     Locations.jsx
@@ -93,173 +114,397 @@ vite.config.js
 <files>
 This section contains the contents of the repository's files.
 
-<file path="src/components/DeliverablesVault.jsx">
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import RevealText from "./RevealText";
+<file path="public/robots.txt">
+User-agent: *
+Allow: /
 
-const items = [
-  {
-    id: 1,
-    title: "Heirloom Album",
-    subtitle: "Handcrafted in Italy",
-    detail:
-      "A 40-page layflat album bound in premium linen or Italian leather. Archival quality paper that lasts generations.",
-    img: "https://images.unsplash.com/photo-1544333323-537245bb4211?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    id: 2,
-    title: "Cinematic Film",
-    subtitle: "4K Narrative Edit",
-    detail:
-      "Not just a music video. A 20-minute documentary feature film with professional sound design, color grading, and licensed music.",
-    img: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    id: 3,
-    title: "The Master Gallery",
-    subtitle: "Cloud Infinite",
-    detail:
-      "Your private, password-protected digital vault. Unlimited full-resolution downloads for you and your guests for 10 years.",
-    img: "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?q=80&w=1000&auto=format&fit=crop",
-  },
-  {
-    id: 4,
-    title: "Same-Day Teaser",
-    subtitle: "Instant Gratification",
-    detail:
-      "A 60-second high-energy reel edited and delivered during your reception. Perfect for that immediate Instagram announcement.",
-    img: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1000&auto=format&fit=crop",
-  },
-];
+Sitemap: https://balagstudios.com/sitemap.xml
+</file>
 
-const DeliverablesVault = () => {
-  const [active, setActive] = useState(items[0]); // Default to first item
+<file path="public/sitemap.xml">
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://balagstudios.com/</loc>
+    <lastmod>2026-02-18</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <url>
+    <loc>https://balagstudios.com/gallery</loc>
+    <lastmod>2026-02-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://balagstudios.com/method</loc>
+    <lastmod>2026-02-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://balagstudios.com/planner</loc>
+    <lastmod>2026-02-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://balagstudios.com/map</loc>
+    <lastmod>2026-02-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://balagstudios.com/about</loc>
+    <lastmod>2026-02-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>https://balagstudios.com/enquire</loc>
+    <lastmod>2026-02-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+</urlset>
+</file>
+
+<file path="src/components/SEO.jsx">
+import { Helmet } from "react-helmet-async";
+
+const SEO = ({ title, description, image, url }) => {
+  const siteTitle = "BalaG Studios | Cinematic Wedding Photography";
+  const defaultDescription =
+    "Award-winning wedding photography and cinematography based in Rishikesh. Capturing timeless, candid moments worldwide.";
+  const defaultImage =
+    "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=1200&q=80"; // Your best hero shot
+  const siteUrl = "https://balagstudios.com";
 
   return (
-    <section className="bg-luxury-black py-32 px-6 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-1/2 h-full bg-luxury-gray/5 -skew-x-12 pointer-events-none" />
+    <Helmet>
+      {/* Standard Metadata */}
+      <title>{title ? `${title} | BalaG Studios` : siteTitle}</title>
+      <meta name="description" content={description || defaultDescription} />
+      <link rel="canonical" href={url ? `${siteUrl}${url}` : siteUrl} />
 
-      <div className="max-w-7xl mx-auto">
+      {/* Open Graph / Facebook (Critical for WhatsApp/IG sharing) */}
+      <meta property="og:type" content="website" />
+      <meta property="og:url" content={url ? `${siteUrl}${url}` : siteUrl} />
+      <meta property="og:title" content={title || siteTitle} />
+      <meta
+        property="og:description"
+        content={description || defaultDescription}
+      />
+      <meta property="og:image" content={image || defaultImage} />
+
+      {/* Twitter */}
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={title || siteTitle} />
+      <meta
+        name="twitter:description"
+        content={description || defaultDescription}
+      />
+      <meta name="twitter:image" content={image || defaultImage} />
+    </Helmet>
+  );
+};
+
+export default SEO;
+</file>
+
+<file path="src/components/SonicAtmosphere.jsx">
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const SonicAtmosphere = () => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const audioRef = useRef(null);
+
+  // Toggle Play/Pause with Fade Effect
+  const toggleAudio = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      // Fade out logic
+      let vol = 0.5;
+      const fadeOut = setInterval(() => {
+        if (vol > 0.05) {
+          vol -= 0.05;
+          audio.volume = vol;
+        } else {
+          audio.pause();
+          setIsPlaying(false);
+          clearInterval(fadeOut);
+        }
+      }, 50);
+    } else {
+      // Start playing and Fade in
+      audio.volume = 0;
+      audio.play();
+      setIsPlaying(true);
+      let vol = 0;
+      const fadeIn = setInterval(() => {
+        if (vol < 0.5) {
+          vol += 0.05;
+          audio.volume = vol;
+        } else {
+          clearInterval(fadeIn);
+        }
+      }, 50);
+    }
+  };
+
+  return (
+    <div className="fixed bottom-8 left-8 z-50 flex items-center gap-4">
+      {/* Hidden Audio Element */}
+      <audio ref={audioRef} loop>
+        <source src="/audio/ambience.mp3" type="audio/mp3" />
+      </audio>
+
+      {/* The Interaction Button */}
+      <motion.button
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={toggleAudio}
+        className="relative group flex items-center justify-center w-12 h-12 bg-white/10 backdrop-blur-md border border-white/20 rounded-full hover:bg-luxury-gold hover:border-luxury-gold transition-all duration-500 shadow-2xl"
+      >
+        {/* Equalizer Graphic */}
+        <div className="flex items-end gap-[3px] h-4">
+          <div
+            className={`w-[2px] bg-white group-hover:bg-black transition-colors ${
+              isPlaying ? "animate-equalizer" : "h-1"
+            }`}
+          />
+          <div
+            className={`w-[2px] bg-white group-hover:bg-black transition-colors ${
+              isPlaying ? "animate-equalizer delay-100" : "h-3"
+            }`}
+          />
+          <div
+            className={`w-[2px] bg-white group-hover:bg-black transition-colors ${
+              isPlaying ? "animate-equalizer delay-300" : "h-2"
+            }`}
+          />
+          <div
+            className={`w-[2px] bg-white group-hover:bg-black transition-colors ${
+              isPlaying ? "animate-equalizer delay-200" : "h-4"
+            }`}
+          />
+        </div>
+      </motion.button>
+
+      {/* Label Tooltip */}
+      <AnimatePresence>
+        {(isHovered || isPlaying) && (
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            className="text-xs uppercase tracking-widest text-white/50 font-sans pointer-events-none"
+          >
+            {isPlaying ? "Rishikesh Ambience" : "Play Atmosphere"}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default SonicAtmosphere;
+</file>
+
+<file path="src/data/videos.js">
+export const videoData = [
+  {
+    id: "film-01",
+    couple: "Rohan & Priya",
+    location: "The Oberoi Udaivilas",
+    category: "Cinematic Feature",
+    embedId: "https://youtu.be/Q4prh6wkwaQ", // <-- Replace with your Unlisted YouTube Video ID
+    thumbnail: "/images/gallery1.jpeg",
+  },
+  {
+    id: "film-02",
+    couple: "Amit & Sarah",
+    location: "Forest Hill Resort",
+    category: "Wedding Teaser",
+    embedId: "https://youtu.be/9ZM3pvgkRIc", // <-- Replace with your 2nd Unlisted YouTube Video ID
+    thumbnail: "/images/gallery2.jpeg",
+  },
+  {
+    id: "film-03",
+    couple: "Vikram & Aditi",
+    location: "Taj Falaknuma",
+    category: "Pre-Wedding Editorial",
+    embedId: "https://youtu.be/Q4prh6wkwaQ", // Looping video 1 for demo
+    thumbnail: "/images/gallery3.jpeg",
+  },
+  {
+    id: "film-04",
+    couple: "Karan & Neha",
+    location: "Lake Como, Italy",
+    category: "Cinematic Feature",
+    embedId: "https://youtu.be/9ZM3pvgkRIc", // Looping video 2 for demo
+    thumbnail: "/images/gallery4.jpeg",
+  },
+];
+</file>
+
+<file path="src/pages/Films.jsx">
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import SEO from "../components/SEO";
+import { videoData } from "../data/videos";
+import RevealText from "../components/RevealText";
+
+const Films = () => {
+  const [activeFilm, setActiveFilm] = useState(videoData[0]);
+
+  return (
+    <div className="bg-luxury-black min-h-screen text-white pt-32 pb-20">
+      <SEO
+        title="Cinematic Films"
+        description="Experience the magic in motion. Watch our curated collection of luxury wedding films."
+        url="/films"
+      />
+
+      <div className="max-w-[95%] mx-auto px-4 md:px-8">
         {/* Header */}
-        <div className="mb-20">
+        <div className="mb-16 border-b border-white/10 pb-8">
           <motion.h3
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="text-luxury-gold uppercase tracking-[0.3em] text-xs mb-4"
+            animate={{ opacity: 1, y: 0 }}
+            className="text-luxury-gold uppercase tracking-[0.3em] text-xs mb-4 font-sans"
           >
-            The Deliverables
+            The Screening Room
           </motion.h3>
           <RevealText
-            text="Your Legacy, Packaged."
-            className="font-serif text-4xl md:text-6xl text-white"
+            text="Motion & Emotion"
+            className="font-serif text-5xl md:text-7xl text-white"
           />
         </div>
 
-        <div className="flex flex-col md:flex-row gap-16 items-start">
-          {/* LEFT: THE INTERACTIVE LIST */}
-          <div className="w-full md:w-1/2 space-y-2">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                onMouseEnter={() => setActive(item)}
-                className="group relative border-b border-white/10 py-8 cursor-pointer transition-colors duration-500 hover:border-luxury-gold/50"
-              >
-                <div className="flex justify-between items-baseline z-10 relative">
-                  <div>
-                    <h2
-                      className={`text-3xl md:text-4xl font-serif transition-all duration-500 ${
-                        active.id === item.id
-                          ? "text-white translate-x-4"
-                          : "text-white/40 group-hover:text-white/80"
-                      }`}
-                    >
-                      {item.title}
-                    </h2>
-                    <p
-                      className={`text-xs uppercase tracking-widest mt-2 transition-all duration-500 ${
-                        active.id === item.id
-                          ? "text-luxury-gold translate-x-4 opacity-100"
-                          : "text-gray-500 opacity-0 h-0 overflow-hidden"
-                      }`}
-                    >
-                      {item.subtitle}
-                    </p>
-                  </div>
-
-                  <span
-                    className={`font-mono text-xs transition-colors duration-500 ${
-                      active.id === item.id
-                        ? "text-luxury-gold"
-                        : "text-white/20"
-                    }`}
-                  >
-                    0{item.id}
-                  </span>
-                </div>
-
-                {/* Hover indicator dot */}
-                {active.id === item.id && (
-                  <motion.div
-                    layoutId="activeDot"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-luxury-gold rounded-full"
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* RIGHT: THE VISUALIZER VAULT */}
-          <div className="w-full md:w-1/2 sticky top-32">
-            <div className="relative aspect-[4/5] md:aspect-square rounded-sm overflow-hidden border border-white/10 shadow-2xl">
+        {/* Split Layout */}
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-start relative">
+          {/* LEFT SIDE: The Sticky Player */}
+          <div className="w-full lg:w-3/5 sticky top-32 z-20">
+            <div className="relative w-full aspect-video bg-black border border-white/10 shadow-2xl rounded-sm overflow-hidden group">
               <AnimatePresence mode="wait">
                 <motion.div
-                  key={active.id}
-                  initial={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
-                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                  exit={{ opacity: 0, scale: 0.95, filter: "blur(5px)" }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                  className="absolute inset-0"
+                  key={activeFilm.id}
+                  initial={{ opacity: 0, filter: "blur(10px)" }}
+                  animate={{ opacity: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="w-full h-full"
                 >
-                  <img
-                    src={active.img}
-                    alt={active.title}
-                    className="w-full h-full object-cover opacity-60"
-                  />
-
-                  {/* Text Overlay inside the image */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent flex flex-col justify-end p-10">
-                    <motion.div
-                      initial={{ y: 20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                    >
-                      <h3 className="text-luxury-gold font-serif text-3xl mb-4 italic">
-                        "{active.subtitle}"
-                      </h3>
-                      <p className="text-gray-200 text-sm leading-relaxed max-w-sm font-sans">
-                        {active.detail}
-                      </p>
-                    </motion.div>
-                  </div>
+                  {/* REPLACED WITH IFRAME TO FIX LAG */}
+                  <iframe
+                    className="absolute top-0 left-0 w-full h-full"
+                    src={`https://www.youtube.com/embed/${activeFilm.embedId}?autoplay=1&modestbranding=1&rel=0&showinfo=0`}
+                    title={activeFilm.couple}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
                 </motion.div>
               </AnimatePresence>
+            </div>
 
-              {/* Decorative Frame Elements */}
-              <div className="absolute top-4 left-4 w-4 h-4 border-l border-t border-white/30" />
-              <div className="absolute top-4 right-4 w-4 h-4 border-r border-t border-white/30" />
-              <div className="absolute bottom-4 left-4 w-4 h-4 border-l border-b border-white/30" />
-              <div className="absolute bottom-4 right-4 w-4 h-4 border-r border-b border-white/30" />
+            {/* Player Metadata */}
+            <div className="mt-6 flex justify-between items-end">
+              <div>
+                <motion.h2
+                  key={`title-${activeFilm.id}`}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="font-serif text-3xl md:text-4xl text-white mb-1"
+                >
+                  {activeFilm.couple}
+                </motion.h2>
+                <motion.p
+                  key={`loc-${activeFilm.id}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-gray-400 font-sans text-sm uppercase tracking-widest"
+                >
+                  {activeFilm.location}
+                </motion.p>
+              </div>
+              <div className="text-luxury-gold text-xs uppercase tracking-widest font-mono hidden md:block">
+                [ {activeFilm.category} ]
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT SIDE: The Tracklist (REMAINS EXACTLY THE SAME) */}
+          <div className="w-full lg:w-2/5 flex flex-col gap-2">
+            <h4 className="text-xs uppercase tracking-[0.2em] text-gray-500 mb-4 border-b border-white/10 pb-2">
+              Select a Film
+            </h4>
+
+            {videoData.map((film, index) => (
+              <div
+                key={film.id}
+                onClick={() => setActiveFilm(film)}
+                className={`group cursor-pointer py-6 border-b border-white/5 transition-all duration-500 relative flex justify-between items-center ${
+                  activeFilm.id === film.id
+                    ? "opacity-100"
+                    : "opacity-40 hover:opacity-100"
+                }`}
+              >
+                {/* Active Indicator Line */}
+                <div
+                  className={`absolute left-0 top-0 h-full w-[2px] bg-luxury-gold transition-transform duration-500 origin-top ${
+                    activeFilm.id === film.id
+                      ? "scale-y-100"
+                      : "scale-y-0 group-hover:scale-y-50"
+                  }`}
+                />
+
+                <div className="pl-6">
+                  <h3
+                    className={`font-serif text-2xl md:text-3xl transition-colors duration-500 ${
+                      activeFilm.id === film.id
+                        ? "text-luxury-gold"
+                        : "text-white"
+                    }`}
+                  >
+                    {film.couple}
+                  </h3>
+                  <p className="text-xs text-gray-400 uppercase tracking-widest mt-2 font-sans">
+                    {film.location}
+                  </p>
+                </div>
+
+                <div className="text-gray-600 font-mono text-sm">
+                  0{index + 1}
+                </div>
+              </div>
+            ))}
+
+            <div className="mt-12 p-6 bg-white/5 border border-white/10 rounded-sm text-center">
+              <p className="text-sm text-gray-400 font-sans italic">
+                *Currently demonstrating layout via YouTube CDN. Final delivery
+                will stream natively via Bunny.net without logos.
+              </p>
             </div>
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
-export default DeliverablesVault;
+export default Films;
 </file>
 
 <file path="public/vite.svg">
@@ -449,6 +694,175 @@ const CustomCursor = () => {
 export default CustomCursor;
 </file>
 
+<file path="src/components/DeliverablesVault.jsx">
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import RevealText from "./RevealText";
+
+const items = [
+  {
+    id: 1,
+    title: "Heirloom Album",
+    subtitle: "Handcrafted in Italy",
+    detail:
+      "A 40-page layflat album bound in premium linen or Italian leather. Archival quality paper that lasts generations.",
+    img: "https://images.unsplash.com/photo-1544333323-537245bb4211?q=80&w=1000&auto=format&fit=crop",
+  },
+  {
+    id: 2,
+    title: "Cinematic Film",
+    subtitle: "4K Narrative Edit",
+    detail:
+      "Not just a music video. A 20-minute documentary feature film with professional sound design, color grading, and licensed music.",
+    img: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=1000&auto=format&fit=crop",
+  },
+  {
+    id: 3,
+    title: "The Master Gallery",
+    subtitle: "Cloud Infinite",
+    detail:
+      "Your private, password-protected digital vault. Unlimited full-resolution downloads for you and your guests for 10 years.",
+    img: "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?q=80&w=1000&auto=format&fit=crop",
+  },
+  {
+    id: 4,
+    title: "Same-Day Teaser",
+    subtitle: "Instant Gratification",
+    detail:
+      "A 60-second high-energy reel edited and delivered during your reception. Perfect for that immediate Instagram announcement.",
+    img: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1000&auto=format&fit=crop",
+  },
+];
+
+const DeliverablesVault = () => {
+  const [active, setActive] = useState(items[0]); // Default to first item
+
+  return (
+    <section className="bg-luxury-black py-32 px-6 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 right-0 w-1/2 h-full bg-luxury-gray/5 -skew-x-12 pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="mb-20">
+          <motion.h3
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            className="text-luxury-gold uppercase tracking-[0.3em] text-xs mb-4"
+          >
+            The Deliverables
+          </motion.h3>
+          <RevealText
+            text="Your Legacy, Packaged."
+            className="font-serif text-4xl md:text-6xl text-white"
+          />
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-16 items-start">
+          {/* LEFT: THE INTERACTIVE LIST */}
+          <div className="w-full md:w-1/2 space-y-2">
+            {items.map((item) => (
+              <div
+                key={item.id}
+                onMouseEnter={() => setActive(item)}
+                className="group relative border-b border-white/10 py-8 cursor-pointer transition-colors duration-500 hover:border-luxury-gold/50"
+              >
+                <div className="flex justify-between items-baseline z-10 relative">
+                  <div>
+                    <h2
+                      className={`text-3xl md:text-4xl font-serif transition-all duration-500 ${
+                        active.id === item.id
+                          ? "text-white translate-x-4"
+                          : "text-white/40 group-hover:text-white/80"
+                      }`}
+                    >
+                      {item.title}
+                    </h2>
+                    <p
+                      className={`text-xs uppercase tracking-widest mt-2 transition-all duration-500 ${
+                        active.id === item.id
+                          ? "text-luxury-gold translate-x-4 opacity-100"
+                          : "text-gray-500 opacity-0 h-0 overflow-hidden"
+                      }`}
+                    >
+                      {item.subtitle}
+                    </p>
+                  </div>
+
+                  <span
+                    className={`font-mono text-xs transition-colors duration-500 ${
+                      active.id === item.id
+                        ? "text-luxury-gold"
+                        : "text-white/20"
+                    }`}
+                  >
+                    0{item.id}
+                  </span>
+                </div>
+
+                {/* Hover indicator dot */}
+                {active.id === item.id && (
+                  <motion.div
+                    layoutId="activeDot"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-luxury-gold rounded-full"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* RIGHT: THE VISUALIZER VAULT */}
+          <div className="w-full md:w-1/2 sticky top-32">
+            <div className="relative aspect-[4/5] md:aspect-square rounded-sm overflow-hidden border border-white/10 shadow-2xl">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={active.id}
+                  initial={{ opacity: 0, scale: 1.1, filter: "blur(10px)" }}
+                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, scale: 0.95, filter: "blur(5px)" }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  className="absolute inset-0"
+                >
+                  <img
+                    src={active.img}
+                    alt={active.title}
+                    className="w-full h-full object-cover opacity-60"
+                  />
+
+                  {/* Text Overlay inside the image */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent flex flex-col justify-end p-10">
+                    <motion.div
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <h3 className="text-luxury-gold font-serif text-3xl mb-4 italic">
+                        "{active.subtitle}"
+                      </h3>
+                      <p className="text-gray-200 text-sm leading-relaxed max-w-sm font-sans">
+                        {active.detail}
+                      </p>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Decorative Frame Elements */}
+              <div className="absolute top-4 left-4 w-4 h-4 border-l border-t border-white/30" />
+              <div className="absolute top-4 right-4 w-4 h-4 border-r border-t border-white/30" />
+              <div className="absolute bottom-4 left-4 w-4 h-4 border-l border-b border-white/30" />
+              <div className="absolute bottom-4 right-4 w-4 h-4 border-r border-b border-white/30" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default DeliverablesVault;
+</file>
+
 <file path="src/components/DirectorSlider.jsx">
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -553,334 +967,6 @@ const DirectorSlider = () => {
 };
 
 export default DirectorSlider;
-</file>
-
-<file path="src/components/Enquire.jsx">
-import { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import emailjs from "@emailjs/browser";
-import { HiArrowRight, HiCheck, HiOutlineArrowLeft } from "react-icons/hi";
-
-// --- CONFIGURATION ---
-const eventTypes = [
-  {
-    id: "wedding",
-    label: "Wedding",
-    img: "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: "prewedding",
-    label: "Pre-Wedding",
-    img: "https://images.unsplash.com/photo-1522673607200-1645062cd495?auto=format&fit=crop&w=600&q=80",
-  },
-  {
-    id: "editorial",
-    label: "Editorial / Fashion",
-    img: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=600&q=80",
-  },
-];
-
-const vibes = [
-  "Candid",
-  "Cinematic",
-  "Traditional",
-  "Royal",
-  "Intimate",
-  "Grand Party",
-  "Black & White",
-  "Drone/Aerial",
-];
-
-const Enquire = () => {
-  const [step, setStep] = useState(1);
-  const [formData, setFormData] = useState({
-    eventType: "",
-    selectedVibes: [],
-    name: "",
-    email: "",
-    phone: "",
-    date: "",
-    location: "",
-  });
-  const [status, setStatus] = useState("idle");
-
-  // --- HANDLERS ---
-  const handleTypeSelect = (type) => {
-    setFormData({ ...formData, eventType: type });
-    setStep(2);
-  };
-
-  const toggleVibe = (vibe) => {
-    const current = formData.selectedVibes;
-    if (current.includes(vibe)) {
-      setFormData({
-        ...formData,
-        selectedVibes: current.filter((v) => v !== vibe),
-      });
-    } else {
-      setFormData({ ...formData, selectedVibes: [...current, vibe] });
-    }
-  };
-
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setStatus("submitting");
-
-    // EMAIL CONFIG
-    const SERVICE_ID = "service_poqiy8s";
-    const TEMPLATE_ID = "template_sae8nkm";
-    const PUBLIC_KEY = "XIlkFdMny_Pm27tvQ";
-
-    const finalMessage = `
-      New Visual Inquiry:
-      Type: ${formData.eventType}
-      Vibe: ${formData.selectedVibes.join(", ")}
-      
-      Details:
-      Name: ${formData.name}
-      Date: ${formData.date}
-      Location: ${formData.location}
-      Phone: ${formData.phone}
-      Email: ${formData.email}
-    `;
-
-    const templateParams = {
-      from_name: formData.name,
-      reply_to: formData.email,
-      message: finalMessage,
-    };
-
-    emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY).then(
-      () => setStatus("success"),
-      () => setStatus("error"),
-    );
-  };
-
-  // --- ANIMATION VARIANTS ---
-  const slideVariants = {
-    enter: (direction) => ({
-      x: direction > 0 ? 100 : -100,
-      opacity: 0,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-      transition: { duration: 0.5, ease: "circOut" },
-    },
-    exit: (direction) => ({
-      x: direction < 0 ? 100 : -100,
-      opacity: 0,
-      transition: { duration: 0.5, ease: "circIn" },
-    }),
-  };
-
-  return (
-    <section className="bg-luxury-black min-h-screen pt-24 pb-12 px-6 flex flex-col items-center justify-center overflow-hidden">
-      {/* PROGRESS HEADER */}
-      <div className="w-full max-w-2xl mb-12 flex justify-between items-center text-xs uppercase tracking-widest text-gray-500">
-        <button
-          onClick={() => step > 1 && setStep(step - 1)}
-          disabled={step === 1 || status === "success"}
-          className="flex items-center gap-2 hover:text-luxury-gold disabled:opacity-30 transition-colors"
-        >
-          <HiOutlineArrowLeft /> Back
-        </button>
-        <div className="flex gap-2">
-          <span className={step >= 1 ? "text-luxury-gold" : "text-gray-700"}>
-            01
-          </span>
-          <span className="text-gray-700">/</span>
-          <span className={step >= 2 ? "text-luxury-gold" : "text-gray-700"}>
-            02
-          </span>
-          <span className="text-gray-700">/</span>
-          <span className={step >= 3 ? "text-luxury-gold" : "text-gray-700"}>
-            03
-          </span>
-        </div>
-      </div>
-
-      <div className="w-full max-w-4xl relative min-h-[500px]">
-        <AnimatePresence mode="wait" custom={step}>
-          {/* --- STEP 1: EVENT TYPE --- */}
-          {step === 1 && (
-            <motion.div
-              key="step1"
-              custom={step}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              className="w-full text-center"
-            >
-              <h2 className="text-4xl md:text-5xl font-serif text-white mb-12">
-                What are we capturing?
-              </h2>
-              <div className="grid md:grid-cols-3 gap-6">
-                {eventTypes.map((type) => (
-                  <div
-                    key={type.id}
-                    onClick={() => handleTypeSelect(type.label)}
-                    className="group relative aspect-[3/4] cursor-pointer overflow-hidden rounded-lg border border-white/10 hover:border-luxury-gold transition-colors"
-                  >
-                    <div
-                      className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
-                      style={{ backgroundImage: `url(${type.img})` }}
-                    />
-                    <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors" />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-xl font-serif text-white tracking-widest uppercase border border-white/30 px-6 py-3 bg-black/20 backdrop-blur-sm group-hover:bg-luxury-gold group-hover:text-black group-hover:border-luxury-gold transition-all">
-                        {type.label}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* --- STEP 2: THE VIBE --- */}
-          {step === 2 && (
-            <motion.div
-              key="step2"
-              custom={step}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              className="w-full text-center max-w-2xl mx-auto"
-            >
-              <h2 className="text-4xl md:text-5xl font-serif text-white mb-4">
-                Define your Vibe
-              </h2>
-              <p className="text-gray-400 mb-12">Select as many as you like.</p>
-
-              <div className="flex flex-wrap justify-center gap-4 mb-12">
-                {vibes.map((vibe) => {
-                  const isSelected = formData.selectedVibes.includes(vibe);
-                  return (
-                    <button
-                      key={vibe}
-                      onClick={() => toggleVibe(vibe)}
-                      className={`px-6 py-3 rounded-full text-sm uppercase tracking-widest border transition-all duration-300 ${
-                        isSelected
-                          ? "bg-luxury-gold border-luxury-gold text-black shadow-[0_0_15px_rgba(212,175,55,0.4)]"
-                          : "bg-transparent border-white/20 text-gray-400 hover:border-white hover:text-white"
-                      }`}
-                    >
-                      {vibe}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <button
-                onClick={() => setStep(3)}
-                className="inline-flex items-center gap-2 text-white border-b border-luxury-gold pb-1 hover:text-luxury-gold transition-colors"
-              >
-                Next Step <HiArrowRight />
-              </button>
-            </motion.div>
-          )}
-
-          {/* --- STEP 3: CONTACT --- */}
-          {step === 3 && (
-            <motion.div
-              key="step3"
-              custom={step}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              className="w-full max-w-xl mx-auto"
-            >
-              {status === "success" ? (
-                <div className="text-center py-20 bg-white/5 border border-white/10 rounded-xl">
-                  <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <HiCheck className="text-black text-3xl" />
-                  </div>
-                  <h2 className="text-3xl font-serif text-white mb-2">
-                    Request Received
-                  </h2>
-                  <p className="text-gray-400">
-                    We'll reach out to {formData.email} shortly.
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <h2 className="text-4xl font-serif text-white mb-8 text-center">
-                    Final Details
-                  </h2>
-                  <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <input
-                        type="text"
-                        name="name"
-                        placeholder="Your Name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        required
-                        className="w-full bg-white/5 border border-white/10 p-4 text-white focus:outline-none focus:border-luxury-gold rounded-sm"
-                      />
-                      <input
-                        type="text"
-                        name="phone"
-                        placeholder="Phone Number"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        className="w-full bg-white/5 border border-white/10 p-4 text-white focus:outline-none focus:border-luxury-gold rounded-sm"
-                      />
-                    </div>
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Email Address"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full bg-white/5 border border-white/10 p-4 text-white focus:outline-none focus:border-luxury-gold rounded-sm"
-                    />
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <input
-                        type="date"
-                        name="date"
-                        value={formData.date}
-                        onChange={handleInputChange}
-                        className="w-full bg-white/5 border border-white/10 p-4 text-white focus:outline-none focus:border-luxury-gold rounded-sm uppercase text-gray-400"
-                      />
-                      <input
-                        type="text"
-                        name="location"
-                        placeholder="City / Venue"
-                        value={formData.location}
-                        onChange={handleInputChange}
-                        className="w-full bg-white/5 border border-white/10 p-4 text-white focus:outline-none focus:border-luxury-gold rounded-sm"
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={status === "submitting"}
-                      className="w-full py-5 bg-luxury-gold text-black font-bold uppercase tracking-widest hover:bg-white transition-colors disabled:opacity-50 mt-4"
-                    >
-                      {status === "submitting" ? "Sending..." : "Send Request"}
-                    </button>
-                  </form>
-                </>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </section>
-  );
-};
-
-export default Enquire;
 </file>
 
 <file path="src/components/Footer.jsx">
@@ -1412,28 +1498,31 @@ import { useRef, useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 
 // Stable, High-Res Wedding Images
+
+// Inside src/components/HorizontalScrollGallery.jsx
+
 const horizontalImages = [
   {
     id: 1,
-    url: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop",
+    url: "/images/gallery7.jpeg", // Reuse gallery-7
     title: "The Grand Entrance",
     category: "Weddings",
   },
   {
     id: 2,
-    url: "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?q=80&w=2070&auto=format&fit=crop",
+    url: "/images/gallery6.jpeg", // Reuse gallery-6
     title: "Intimate Vows",
     category: "Engagements",
   },
   {
     id: 3,
-    url: "https://images.unsplash.com/photo-1520854221256-174626102607?q=80&w=2070&auto=format&fit=crop",
+    url: "/images/gallery3.jpeg",
     title: "Riverside Ceremony",
     category: "Weddings",
   },
   {
     id: 4,
-    url: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?q=80&w=2070&auto=format&fit=crop",
+    url: "/images/gallery2.jpeg",
     title: "Golden Hour Portraits",
     category: "Portraits",
   },
@@ -1838,6 +1927,919 @@ const StickyScrollGallery = () => {
 export default StickyScrollGallery;
 </file>
 
+<file path="src/data/locations.js">
+export const locationData = [
+  {
+    id: "wedding-rohan-priya",
+    title: "The Royal Palace",
+    couple: "Rohan & Priya",
+    lat: 30,
+    lng: 40,
+    videoPreview:
+      "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95/3o7aD2saalBwwftBIY/giphy.gif",
+    description: "A sunset ceremony overlooking the Ganges.",
+    fullStory: {
+      // You can reuse gallery images here or use specific story images
+      images: ["/images/story1.jpeg", "/images/gallery1.jpeg"],
+      text: "The day started with a gentle breeze from the river...",
+    },
+  },
+  {
+    id: "wedding-amit-sarah",
+    title: "Hidden Waterfall",
+    couple: "Amit & Sarah",
+    lat: 60,
+    lng: 70,
+    videoPreview:
+      "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95/xT9IgzoKnwFNmISR8I/giphy.gif",
+    description: "Intimate vows amidst the raw power of nature.",
+    fullStory: {
+      images: ["/images/story2.jpeg", "/images/gallery3.jpeg"],
+      text: "They wanted no guests, just the sound of the water...",
+    },
+  },
+  {
+    id: "wedding-vikram-aditi",
+    title: "Sunset Ghat",
+    couple: "Vikram & Aditi",
+    lat: 45,
+    lng: 20,
+    videoPreview:
+      "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95/l0HlOaQcLJww8601u/giphy.gif",
+    description: "Traditional pheras with a cinematic golden hour.",
+    fullStory: {
+      images: ["/images/story3.jpeg", "/images/gallery2.jpeg"],
+      text: "As the sun dipped below the horizon, the fire was lit...",
+    },
+  },
+];
+</file>
+
+<file path="src/data/team.js">
+export const teamMembers = [
+  {
+    id: 1,
+    name: "Bala G",
+    role: "Lead Photographer & Founder",
+    image:
+      "https://images.unsplash.com/photo-1556157382-97eda2d62296?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    bio: "Capturing the unseen moments since 2015. Obsessed with light, shadow, and raw emotion.",
+  },
+  {
+    id: 2,
+    name: "Arjun Verma",
+    role: "Cinematographer",
+    image:
+      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    bio: "Turning weddings into feature films. Believes every couple has a cinematic story to tell.",
+  },
+  {
+    id: 3,
+    name: "Sanya Roy",
+    role: "Creative Director",
+    image:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+    bio: "The eye for detail. Ensures every frame, outfit, and setting is picture-perfect.",
+  },
+];
+</file>
+
+<file path="src/pages/GoldenHourPage.jsx">
+import GoldenHourOracle from "../components/GoldenHourOracle";
+import SEO from "../components/SEO";
+
+const GoldenHourPage = () => {
+  return (
+    <>
+      <SEO
+        title="Golden Hour Planner"
+        description="Plan your perfect wedding lighting with our scientific sun tracker. Calculate golden hour for Rishikesh, Udaipur, and worldwide destinations."
+        url="/planner"
+      />
+      {/* We remove padding top here because the Oracle component 
+          handles its own full-screen layout and gradients */}
+      <div className="relative">
+        <GoldenHourOracle />
+      </div>
+    </>
+  );
+};
+
+export default GoldenHourPage;
+</file>
+
+<file path="src/pages/Locations.jsx">
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { locationData } from "../data/locations";
+import { HiLocationMarker } from "react-icons/hi";
+import SEO from "../components/SEO";
+
+const Locations = () => {
+  const [hoveredLocation, setHoveredLocation] = useState(null);
+
+  return (
+    <div className="bg-luxury-black min-h-screen pt-24 pb-10 px-4 overflow-hidden flex flex-col items-center">
+      <SEO
+        title="Location Scout"
+        description="Explore our interactive map of real weddings across India. See how we capture love in Rishikesh, Goa, Udaipur, and beyond."
+        url="/map"
+      />
+      {/* Header */}
+      <div className="text-center mb-10 z-10 relative">
+        <h2 className="text-luxury-gold uppercase tracking-widest text-sm mb-2">
+          Location Scout
+        </h2>
+        <h1 className="font-serif text-4xl md:text-5xl text-white">
+          Explore Our Weddings
+        </h1>
+        <p className="text-gray-400 text-xs mt-2 uppercase tracking-wide">
+          Click a pin to view the full story
+        </p>
+      </div>
+
+      {/* THE MAP CONTAINER */}
+      <div className="relative w-full max-w-6xl aspect-[16/9] bg-[#1a1a1a] rounded-xl border border-white/10 shadow-2xl overflow-hidden group">
+        {/* 1. MAP IMAGE (Static Background) */}
+        {/* Replace this URL with your actual stylized map image of Rishikesh */}
+        <div
+          className="absolute inset-0 bg-cover bg-center opacity-40 transition-opacity duration-500 group-hover:opacity-60"
+          style={{
+            backgroundImage:
+              'url("https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=2000&q=80")',
+          }}
+        />
+
+        {/* Dark overlay to make pins pop */}
+        <div className="absolute inset-0 bg-black/30" />
+
+        {/* 2. THE PINS */}
+        {locationData.map((loc) => (
+          <Link to={`/weddings/${loc.id}`} key={loc.id}>
+            <div
+              className="absolute cursor-pointer"
+              style={{ top: `${loc.lat}%`, left: `${loc.lng}%` }}
+              onMouseEnter={() => setHoveredLocation(loc)}
+              onMouseLeave={() => setHoveredLocation(null)}
+            >
+              {/* Pulsing Pin Effect */}
+              <div className="relative flex items-center justify-center w-8 h-8 -translate-x-1/2 -translate-y-1/2">
+                <span className="absolute w-full h-full bg-luxury-gold/50 rounded-full animate-ping" />
+                <div className="relative w-3 h-3 bg-luxury-gold rounded-full shadow-[0_0_20px_rgba(212,175,55,0.8)] border border-white" />
+              </div>
+            </div>
+          </Link>
+        ))}
+
+        {/* 3. HOVER PREVIEW MODAL (The "Shock") */}
+        <AnimatePresence>
+          {hoveredLocation && (
+            <motion.div
+              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.9 }}
+              className="absolute pointer-events-none z-20 w-64 bg-black/90 border border-luxury-gold/30 rounded-lg overflow-hidden shadow-2xl backdrop-blur-md"
+              style={{
+                // Simple logic to keep tooltip on screen:
+                // If marker is on the right (>50%), show tooltip to the left.
+                top: `${hoveredLocation.lat - 10}%`,
+                left:
+                  hoveredLocation.lng > 50
+                    ? "auto"
+                    : `${hoveredLocation.lng + 2}%`,
+                right:
+                  hoveredLocation.lng > 50
+                    ? `${100 - hoveredLocation.lng + 2}%`
+                    : "auto",
+              }}
+            >
+              {/* Mini Video Loop */}
+              <div className="h-32 w-full bg-gray-800 relative">
+                <img
+                  src={hoveredLocation.videoPreview}
+                  alt="preview"
+                  className="w-full h-full object-cover opacity-80"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+              </div>
+
+              {/* Info */}
+              <div className="p-4">
+                <h3 className="text-luxury-gold font-serif text-lg leading-none mb-1">
+                  {hoveredLocation.couple}
+                </h3>
+                <p className="text-white/60 text-[10px] uppercase tracking-widest mb-2">
+                  {hoveredLocation.title}
+                </p>
+                <div className="text-xs text-gray-400 italic leading-tight">
+                  "{hoveredLocation.description}"
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+};
+
+export default Locations;
+</file>
+
+<file path="src/pages/WeddingStory.jsx">
+import { useParams, Link } from "react-router-dom";
+import { locationData } from "../data/locations";
+import { motion } from "framer-motion";
+import { HiArrowLeft } from "react-icons/hi";
+import SEO from "../components/SEO";
+
+const WeddingStory = () => {
+  const { id } = useParams();
+  const data = locationData.find((item) => item.id === id);
+
+  if (!data)
+    return (
+      <div className="text-white pt-32 text-center">Wedding not found.</div>
+    );
+
+  return (
+    <div className="bg-luxury-black min-h-screen text-white pt-24 pb-20 px-6">
+      <SEO
+        title={`${data.couple} | ${data.title}`}
+        description={`See the full story of ${data.couple}'s wedding at ${data.title}. ${data.description}`}
+        image={data.fullStory.images[0]} // Uses the first image of their story
+        url={`/weddings/${id}`}
+      />
+      <div className="max-w-7xl mx-auto">
+        {/* Back Button */}
+        <Link
+          to="/map"
+          className="inline-flex items-center gap-2 text-luxury-gold uppercase tracking-widest text-xs mb-10 hover:opacity-80 transition-opacity"
+        >
+          <HiArrowLeft /> Back to Map
+        </Link>
+
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-16 text-center"
+        >
+          <span className="border border-white/20 px-4 py-1 rounded-full text-xs uppercase tracking-widest text-gray-400">
+            {data.title}
+          </span>
+          <h1 className="text-5xl md:text-7xl font-serif mt-6 mb-4">
+            {data.couple}
+          </h1>
+          <p className="text-xl text-gray-300 font-serif italic max-w-2xl mx-auto">
+            "{data.description}"
+          </p>
+        </motion.div>
+
+        {/* Story Content */}
+        <div className="grid gap-12">
+          {data.fullStory.images.map((img, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="relative aspect-[16/9] overflow-hidden rounded-sm"
+            >
+              <img
+                src={img}
+                alt="Wedding shot"
+                className="w-full h-full object-cover"
+              />
+            </motion.div>
+          ))}
+        </div>
+
+        <div className="mt-16 text-center max-w-3xl mx-auto leading-relaxed text-gray-400">
+          <p>{data.fullStory.text}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default WeddingStory;
+</file>
+
+<file path="src/App.css">
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+</file>
+
+<file path="src/main.jsx">
+import React from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.jsx";
+import "./index.css";
+import { BrowserRouter } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async"; // <--- IMPORT THIS
+
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
+    <HelmetProvider>
+      {" "}
+      {/* <--- WRAP APP WITH THIS */}
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </HelmetProvider>
+  </React.StrictMode>,
+);
+</file>
+
+<file path="eslint.config.js">
+import js from '@eslint/js'
+import globals from 'globals'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import { defineConfig, globalIgnores } from 'eslint/config'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{js,jsx}'],
+    extends: [
+      js.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+    },
+  },
+])
+</file>
+
+<file path="index.html">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>BalaG Studios | Cinematic Wedding Photography</title>
+    <meta
+      name="description"
+      content="BalaG Studios is a luxury wedding photography team based in Rishikesh, specializing in cinematic storytelling, candid moments, and editorial pre-wedding shoots worldwide."
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="postcss.config.js">
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+</file>
+
+<file path="README.md">
+# React + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+</file>
+
+<file path="vite.config.js">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+</file>
+
+<file path="src/components/Enquire.jsx">
+import { useState, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import emailjs from "@emailjs/browser";
+import { HiArrowRight, HiCheck, HiOutlineArrowLeft } from "react-icons/hi";
+import SEO from "./SEO";
+
+// --- CONFIGURATION ---
+const eventTypes = [
+  {
+    id: "wedding",
+    label: "Wedding",
+    img: "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    id: "prewedding",
+    label: "Pre-Wedding",
+    img: "https://images.unsplash.com/photo-1522673607200-1645062cd495?auto=format&fit=crop&w=600&q=80",
+  },
+  {
+    id: "editorial",
+    label: "Editorial / Fashion",
+    img: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=600&q=80",
+  },
+];
+
+const vibes = [
+  "Candid",
+  "Cinematic",
+  "Traditional",
+  "Royal",
+  "Intimate",
+  "Grand Party",
+  "Black & White",
+  "Drone/Aerial",
+];
+
+const Enquire = () => {
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({
+    eventType: "",
+    selectedVibes: [],
+    name: "",
+    email: "",
+    phone: "",
+    date: "",
+    location: "",
+  });
+  const [status, setStatus] = useState("idle");
+
+  // --- HANDLERS ---
+  const handleTypeSelect = (type) => {
+    setFormData({ ...formData, eventType: type });
+    setStep(2);
+  };
+
+  const toggleVibe = (vibe) => {
+    const current = formData.selectedVibes;
+    if (current.includes(vibe)) {
+      setFormData({
+        ...formData,
+        selectedVibes: current.filter((v) => v !== vibe),
+      });
+    } else {
+      setFormData({ ...formData, selectedVibes: [...current, vibe] });
+    }
+  };
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setStatus("submitting");
+
+    // EMAIL CONFIG
+    const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+    const finalMessage = `
+      New Visual Inquiry:
+      Type: ${formData.eventType}
+      Vibe: ${formData.selectedVibes.join(", ")}
+      
+      Details:
+      Name: ${formData.name}
+      Date: ${formData.date}
+      Location: ${formData.location}
+      Phone: ${formData.phone}
+      Email: ${formData.email}
+    `;
+
+    const templateParams = {
+      from_name: formData.name,
+      reply_to: formData.email,
+      message: finalMessage,
+    };
+
+    emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY).then(
+      () => setStatus("success"),
+      () => setStatus("error"),
+    );
+  };
+
+  // --- ANIMATION VARIANTS ---
+  const slideVariants = {
+    enter: (direction) => ({
+      x: direction > 0 ? 100 : -100,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      transition: { duration: 0.5, ease: "circOut" },
+    },
+    exit: (direction) => ({
+      x: direction < 0 ? 100 : -100,
+      opacity: 0,
+      transition: { duration: 0.5, ease: "circIn" },
+    }),
+  };
+
+  return (
+    <section className="bg-luxury-black min-h-screen pt-24 pb-12 px-6 flex flex-col items-center justify-center overflow-hidden">
+      <SEO
+        title="Inquire"
+        description="Start your journey with BalaG Studios. Check availability for your 2026 wedding dates."
+        url="/enquire"
+      />
+      {/* PROGRESS HEADER */}
+      <div className="w-full max-w-2xl mb-12 flex justify-between items-center text-xs uppercase tracking-widest text-gray-500">
+        <button
+          onClick={() => step > 1 && setStep(step - 1)}
+          disabled={step === 1 || status === "success"}
+          className="flex items-center gap-2 hover:text-luxury-gold disabled:opacity-30 transition-colors"
+        >
+          <HiOutlineArrowLeft /> Back
+        </button>
+        <div className="flex gap-2">
+          <span className={step >= 1 ? "text-luxury-gold" : "text-gray-700"}>
+            01
+          </span>
+          <span className="text-gray-700">/</span>
+          <span className={step >= 2 ? "text-luxury-gold" : "text-gray-700"}>
+            02
+          </span>
+          <span className="text-gray-700">/</span>
+          <span className={step >= 3 ? "text-luxury-gold" : "text-gray-700"}>
+            03
+          </span>
+        </div>
+      </div>
+
+      <div className="w-full max-w-4xl relative min-h-[500px]">
+        <AnimatePresence mode="wait" custom={step}>
+          {/* --- STEP 1: EVENT TYPE --- */}
+          {step === 1 && (
+            <motion.div
+              key="step1"
+              custom={step}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              className="w-full text-center"
+            >
+              <h2 className="text-4xl md:text-5xl font-serif text-white mb-12">
+                What are we capturing?
+              </h2>
+              <div className="grid md:grid-cols-3 gap-6">
+                {eventTypes.map((type) => (
+                  <div
+                    key={type.id}
+                    onClick={() => handleTypeSelect(type.label)}
+                    className="group relative aspect-[3/4] cursor-pointer overflow-hidden rounded-lg border border-white/10 hover:border-luxury-gold transition-colors"
+                  >
+                    <div
+                      className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+                      style={{ backgroundImage: `url(${type.img})` }}
+                    />
+                    <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-xl font-serif text-white tracking-widest uppercase border border-white/30 px-6 py-3 bg-black/20 backdrop-blur-sm group-hover:bg-luxury-gold group-hover:text-black group-hover:border-luxury-gold transition-all">
+                        {type.label}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* --- STEP 2: THE VIBE --- */}
+          {step === 2 && (
+            <motion.div
+              key="step2"
+              custom={step}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              className="w-full text-center max-w-2xl mx-auto"
+            >
+              <h2 className="text-4xl md:text-5xl font-serif text-white mb-4">
+                Define your Vibe
+              </h2>
+              <p className="text-gray-400 mb-12">Select as many as you like.</p>
+
+              <div className="flex flex-wrap justify-center gap-4 mb-12">
+                {vibes.map((vibe) => {
+                  const isSelected = formData.selectedVibes.includes(vibe);
+                  return (
+                    <button
+                      key={vibe}
+                      onClick={() => toggleVibe(vibe)}
+                      className={`px-6 py-3 rounded-full text-sm uppercase tracking-widest border transition-all duration-300 ${
+                        isSelected
+                          ? "bg-luxury-gold border-luxury-gold text-black shadow-[0_0_15px_rgba(212,175,55,0.4)]"
+                          : "bg-transparent border-white/20 text-gray-400 hover:border-white hover:text-white"
+                      }`}
+                    >
+                      {vibe}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => setStep(3)}
+                className="inline-flex items-center gap-2 text-white border-b border-luxury-gold pb-1 hover:text-luxury-gold transition-colors"
+              >
+                Next Step <HiArrowRight />
+              </button>
+            </motion.div>
+          )}
+
+          {/* --- STEP 3: CONTACT --- */}
+          {step === 3 && (
+            <motion.div
+              key="step3"
+              custom={step}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              className="w-full max-w-xl mx-auto"
+            >
+              {status === "success" ? (
+                <div className="text-center py-20 bg-white/5 border border-white/10 rounded-xl">
+                  <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <HiCheck className="text-black text-3xl" />
+                  </div>
+                  <h2 className="text-3xl font-serif text-white mb-2">
+                    Request Received
+                  </h2>
+                  <p className="text-gray-400">
+                    We'll reach out to {formData.email} shortly.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-4xl font-serif text-white mb-8 text-center">
+                    Final Details
+                  </h2>
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <input
+                        type="text"
+                        name="name"
+                        placeholder="Your Name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full bg-white/5 border border-white/10 p-4 text-white focus:outline-none focus:border-luxury-gold rounded-sm"
+                      />
+                      <input
+                        type="text"
+                        name="phone"
+                        placeholder="Phone Number"
+                        value={formData.phone}
+                        onChange={handleInputChange}
+                        className="w-full bg-white/5 border border-white/10 p-4 text-white focus:outline-none focus:border-luxury-gold rounded-sm"
+                      />
+                    </div>
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Email Address"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full bg-white/5 border border-white/10 p-4 text-white focus:outline-none focus:border-luxury-gold rounded-sm"
+                    />
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <input
+                        type="date"
+                        name="date"
+                        value={formData.date}
+                        onChange={handleInputChange}
+                        className="w-full bg-white/5 border border-white/10 p-4 text-white focus:outline-none focus:border-luxury-gold rounded-sm uppercase text-gray-400"
+                      />
+                      <input
+                        type="text"
+                        name="location"
+                        placeholder="City / Venue"
+                        value={formData.location}
+                        onChange={handleInputChange}
+                        className="w-full bg-white/5 border border-white/10 p-4 text-white focus:outline-none focus:border-luxury-gold rounded-sm"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={status === "submitting"}
+                      className="w-full py-5 bg-luxury-gold text-black font-bold uppercase tracking-widest hover:bg-white transition-colors disabled:opacity-50 mt-4"
+                    >
+                      {status === "submitting" ? "Sending..." : "Send Request"}
+                    </button>
+                  </form>
+                </>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </section>
+  );
+};
+
+export default Enquire;
+</file>
+
+<file path="src/components/GalleryGrid.jsx">
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { galleryImages } from "../data/photos";
+import { HiX } from "react-icons/hi";
+import RevealText from "./RevealText"; // Import
+import SEO from "./SEO";
+
+const GalleryGrid = () => {
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  return (
+    <section className="bg-luxury-black py-20 px-4 min-h-screen">
+      <SEO
+        title="Portfolio Gallery"
+        description="Browse our curated collection of wedding, pre-wedding, and editorial fashion photography."
+        url="/gallery"
+      />
+      <div className="max-w-7xl mx-auto">
+        {/* Section Header */}
+        <div className="text-center mb-16 flex flex-col items-center">
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            className="text-luxury-gold uppercase tracking-widest text-sm mb-4"
+          >
+            Portfolio
+          </motion.h2>
+
+          {/* REPLACED H3 WITH REVEALTEXT */}
+          <RevealText
+            text="Captured Moments"
+            className="font-serif text-4xl md:text-6xl text-white justify-center"
+          />
+        </div>
+
+        {/* Masonry Grid (Existing Code) */}
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
+          {galleryImages.map((image, index) => (
+            <motion.div
+              key={image.id}
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              onClick={() => setSelectedImage(image)}
+              className="break-inside-avoid relative group cursor-pointer overflow-hidden rounded-sm"
+            >
+              <img
+                src={image.url}
+                alt={image.title}
+                className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+                <p className="text-luxury-gold text-xs uppercase tracking-widest translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                  {image.category}
+                </p>
+                <h4 className="text-white font-serif text-2xl translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75">
+                  {image.title}
+                </h4>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Lightbox Modal (Existing Code) */}
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedImage(null)}
+            className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4 cursor-pointer backdrop-blur-sm"
+          >
+            <button className="absolute top-6 right-6 text-white text-4xl hover:text-luxury-gold transition-colors z-50">
+              <HiX />
+            </button>
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="relative max-h-[90vh] max-w-[90vw]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={selectedImage.url}
+                alt={selectedImage.title}
+                className="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl border border-white/10"
+              />
+              <div className="mt-4 text-center">
+                <h3 className="text-white font-serif text-2xl">
+                  {selectedImage.title}
+                </h3>
+                <p className="text-luxury-gold text-sm uppercase tracking-widest">
+                  {selectedImage.category}
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </section>
+  );
+};
+
+export default GalleryGrid;
+</file>
+
 <file path="src/components/Testimonials.jsx">
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -1994,355 +2996,57 @@ const Testimonials = () => {
 export default Testimonials;
 </file>
 
-<file path="src/data/locations.js">
-export const locationData = [
-  {
-    id: "wedding-rohan-priya",
-    title: "The Royal Palace",
-    couple: "Rohan & Priya",
-    lat: 30, // Percentage from top
-    lng: 40, // Percentage from left
-    videoPreview:
-      "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95/3o7aD2saalBwwftBIY/giphy.gif", // Placeholder GIF
-    description: "A sunset ceremony overlooking the Ganges.",
-    fullStory: {
-      images: [
-        "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=1200&q=80",
-      ],
-      text: "The day started with a gentle breeze from the river...",
-    },
-  },
-  {
-    id: "wedding-amit-sarah",
-    title: "Hidden Waterfall",
-    couple: "Amit & Sarah",
-    lat: 60,
-    lng: 70,
-    videoPreview:
-      "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95/xT9IgzoKnwFNmISR8I/giphy.gif",
-    description: "Intimate vows amidst the raw power of nature.",
-    fullStory: {
-      images: [
-        "https://images.unsplash.com/photo-1520854221256-174626102607?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=80",
-      ],
-      text: "They wanted no guests, just the sound of the water...",
-    },
-  },
-  {
-    id: "wedding-vikram-aditi",
-    title: "Sunset Ghat",
-    couple: "Vikram & Aditi",
-    lat: 45,
-    lng: 20,
-    videoPreview:
-      "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95/l0HlOaQcLJww8601u/giphy.gif",
-    description: "Traditional pheras with a cinematic golden hour.",
-    fullStory: {
-      images: [
-        "https://images.unsplash.com/photo-1537905569824-f89f14cceb68?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1522673607200-1645062cd495?auto=format&fit=crop&w=1200&q=80",
-      ],
-      text: "As the sun dipped below the horizon, the fire was lit...",
-    },
-  },
-];
-</file>
-
-<file path="src/data/team.js">
-export const teamMembers = [
+<file path="src/data/photos.js">
+export const galleryImages = [
   {
     id: 1,
-    name: "Bala G",
-    role: "Lead Photographer & Founder",
-    image:
-      "https://images.unsplash.com/photo-1556157382-97eda2d62296?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    bio: "Capturing the unseen moments since 2015. Obsessed with light, shadow, and raw emotion.",
+    url: "/images/gallery1.jpeg", // <--- Local Path
+    category: "Weddings",
+    title: "The Royal Vows",
   },
   {
     id: 2,
-    name: "Arjun Verma",
-    role: "Cinematographer",
-    image:
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    bio: "Turning weddings into feature films. Believes every couple has a cinematic story to tell.",
+    url: "/images/gallery2.jpeg",
+    category: "Portraits",
+    title: "Golden Hour",
   },
   {
     id: 3,
-    name: "Sanya Roy",
-    role: "Creative Director",
-    image:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
-    bio: "The eye for detail. Ensures every frame, outfit, and setting is picture-perfect.",
+    url: "/images/gallery3.jpeg",
+    category: "Ceremony",
+    title: "Traditions",
   },
+  {
+    id: 4,
+    url: "/images/gallery4.jpeg",
+    category: "Candid",
+    title: "Laughter & Tears",
+  },
+  {
+    id: 5,
+    url: "/images/gallery5.jpeg",
+    category: "Details",
+    title: "The Rings",
+  },
+  {
+    id: 6,
+    url: "/images/gallery6.jpeg",
+    category: "Portraits",
+    title: "Together Forever",
+  },
+  {
+    id: 7,
+    url: "/images/gallery7.jpeg",
+    category: "Weddings",
+    title: "The Walk",
+  },
+  // {
+  //   id: 8,
+  //   url: "/images/gallery-8.jpg",
+  //   category: "Fashion",
+  //   title: "Bridal Look",
+  // },
 ];
-</file>
-
-<file path="src/pages/GoldenHourPage.jsx">
-import GoldenHourOracle from "../components/GoldenHourOracle";
-
-const GoldenHourPage = () => {
-  return (
-    <>
-      {/* We remove padding top here because the Oracle component 
-          handles its own full-screen layout and gradients */}
-      <div className="relative">
-        <GoldenHourOracle />
-      </div>
-    </>
-  );
-};
-
-export default GoldenHourPage;
-</file>
-
-<file path="src/pages/Locations.jsx">
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { locationData } from "../data/locations";
-import { HiLocationMarker } from "react-icons/hi";
-
-const Locations = () => {
-  const [hoveredLocation, setHoveredLocation] = useState(null);
-
-  return (
-    <div className="bg-luxury-black min-h-screen pt-24 pb-10 px-4 overflow-hidden flex flex-col items-center">
-      {/* Header */}
-      <div className="text-center mb-10 z-10 relative">
-        <h2 className="text-luxury-gold uppercase tracking-widest text-sm mb-2">
-          Location Scout
-        </h2>
-        <h1 className="font-serif text-4xl md:text-5xl text-white">
-          Explore Our Weddings
-        </h1>
-        <p className="text-gray-400 text-xs mt-2 uppercase tracking-wide">
-          Click a pin to view the full story
-        </p>
-      </div>
-
-      {/* THE MAP CONTAINER */}
-      <div className="relative w-full max-w-6xl aspect-[16/9] bg-[#1a1a1a] rounded-xl border border-white/10 shadow-2xl overflow-hidden group">
-        {/* 1. MAP IMAGE (Static Background) */}
-        {/* Replace this URL with your actual stylized map image of Rishikesh */}
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-40 transition-opacity duration-500 group-hover:opacity-60"
-          style={{
-            backgroundImage:
-              'url("https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=2000&q=80")',
-          }}
-        />
-
-        {/* Dark overlay to make pins pop */}
-        <div className="absolute inset-0 bg-black/30" />
-
-        {/* 2. THE PINS */}
-        {locationData.map((loc) => (
-          <Link to={`/weddings/${loc.id}`} key={loc.id}>
-            <div
-              className="absolute cursor-pointer"
-              style={{ top: `${loc.lat}%`, left: `${loc.lng}%` }}
-              onMouseEnter={() => setHoveredLocation(loc)}
-              onMouseLeave={() => setHoveredLocation(null)}
-            >
-              {/* Pulsing Pin Effect */}
-              <div className="relative flex items-center justify-center w-8 h-8 -translate-x-1/2 -translate-y-1/2">
-                <span className="absolute w-full h-full bg-luxury-gold/50 rounded-full animate-ping" />
-                <div className="relative w-3 h-3 bg-luxury-gold rounded-full shadow-[0_0_20px_rgba(212,175,55,0.8)] border border-white" />
-              </div>
-            </div>
-          </Link>
-        ))}
-
-        {/* 3. HOVER PREVIEW MODAL (The "Shock") */}
-        <AnimatePresence>
-          {hoveredLocation && (
-            <motion.div
-              initial={{ opacity: 0, y: 10, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.9 }}
-              className="absolute pointer-events-none z-20 w-64 bg-black/90 border border-luxury-gold/30 rounded-lg overflow-hidden shadow-2xl backdrop-blur-md"
-              style={{
-                // Simple logic to keep tooltip on screen:
-                // If marker is on the right (>50%), show tooltip to the left.
-                top: `${hoveredLocation.lat - 10}%`,
-                left:
-                  hoveredLocation.lng > 50
-                    ? "auto"
-                    : `${hoveredLocation.lng + 2}%`,
-                right:
-                  hoveredLocation.lng > 50
-                    ? `${100 - hoveredLocation.lng + 2}%`
-                    : "auto",
-              }}
-            >
-              {/* Mini Video Loop */}
-              <div className="h-32 w-full bg-gray-800 relative">
-                <img
-                  src={hoveredLocation.videoPreview}
-                  alt="preview"
-                  className="w-full h-full object-cover opacity-80"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
-              </div>
-
-              {/* Info */}
-              <div className="p-4">
-                <h3 className="text-luxury-gold font-serif text-lg leading-none mb-1">
-                  {hoveredLocation.couple}
-                </h3>
-                <p className="text-white/60 text-[10px] uppercase tracking-widest mb-2">
-                  {hoveredLocation.title}
-                </p>
-                <div className="text-xs text-gray-400 italic leading-tight">
-                  "{hoveredLocation.description}"
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-};
-
-export default Locations;
-</file>
-
-<file path="src/pages/WeddingStory.jsx">
-import { useParams, Link } from "react-router-dom";
-import { locationData } from "../data/locations";
-import { motion } from "framer-motion";
-import { HiArrowLeft } from "react-icons/hi";
-
-const WeddingStory = () => {
-  const { id } = useParams();
-  const data = locationData.find((item) => item.id === id);
-
-  if (!data)
-    return (
-      <div className="text-white pt-32 text-center">Wedding not found.</div>
-    );
-
-  return (
-    <div className="bg-luxury-black min-h-screen text-white pt-24 pb-20 px-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Back Button */}
-        <Link
-          to="/map"
-          className="inline-flex items-center gap-2 text-luxury-gold uppercase tracking-widest text-xs mb-10 hover:opacity-80 transition-opacity"
-        >
-          <HiArrowLeft /> Back to Map
-        </Link>
-
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-16 text-center"
-        >
-          <span className="border border-white/20 px-4 py-1 rounded-full text-xs uppercase tracking-widest text-gray-400">
-            {data.title}
-          </span>
-          <h1 className="text-5xl md:text-7xl font-serif mt-6 mb-4">
-            {data.couple}
-          </h1>
-          <p className="text-xl text-gray-300 font-serif italic max-w-2xl mx-auto">
-            "{data.description}"
-          </p>
-        </motion.div>
-
-        {/* Story Content */}
-        <div className="grid gap-12">
-          {data.fullStory.images.map((img, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-              className="relative aspect-[16/9] overflow-hidden rounded-sm"
-            >
-              <img
-                src={img}
-                alt="Wedding shot"
-                className="w-full h-full object-cover"
-              />
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="mt-16 text-center max-w-3xl mx-auto leading-relaxed text-gray-400">
-          <p>{data.fullStory.text}</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default WeddingStory;
-</file>
-
-<file path="src/App.css">
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
-
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-</file>
-
-<file path="src/main.jsx">
-import React from "react";
-import ReactDOM from "react-dom/client";
-import App from "./App.jsx";
-import "./index.css";
-import { BrowserRouter } from "react-router-dom";
-
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>,
-);
 </file>
 
 <file path=".gitignore">
@@ -2370,292 +3074,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-</file>
 
-<file path="eslint.config.js">
-import js from '@eslint/js'
-import globals from 'globals'
-import reactHooks from 'eslint-plugin-react-hooks'
-import reactRefresh from 'eslint-plugin-react-refresh'
-import { defineConfig, globalIgnores } from 'eslint/config'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{js,jsx}'],
-    extends: [
-      js.configs.recommended,
-      reactHooks.configs.flat.recommended,
-      reactRefresh.configs.vite,
-    ],
-    languageOptions: {
-      ecmaVersion: 2020,
-      globals: globals.browser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        ecmaFeatures: { jsx: true },
-        sourceType: 'module',
-      },
-    },
-    rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
-    },
-  },
-])
-</file>
-
-<file path="index.html">
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>balag-studios</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
-</file>
-
-<file path="postcss.config.js">
-export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-};
-</file>
-
-<file path="README.md">
-# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-</file>
-
-<file path="vite.config.js">
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-})
-</file>
-
-<file path="src/components/GalleryGrid.jsx">
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { galleryImages } from "../data/photos";
-import { HiX } from "react-icons/hi";
-import RevealText from "./RevealText"; // Import
-
-const GalleryGrid = () => {
-  const [selectedImage, setSelectedImage] = useState(null);
-
-  return (
-    <section className="bg-luxury-black py-20 px-4 min-h-screen">
-      <div className="max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="text-center mb-16 flex flex-col items-center">
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            className="text-luxury-gold uppercase tracking-widest text-sm mb-4"
-          >
-            Portfolio
-          </motion.h2>
-
-          {/* REPLACED H3 WITH REVEALTEXT */}
-          <RevealText
-            text="Captured Moments"
-            className="font-serif text-4xl md:text-6xl text-white justify-center"
-          />
-        </div>
-
-        {/* Masonry Grid (Existing Code) */}
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
-          {galleryImages.map((image, index) => (
-            <motion.div
-              key={image.id}
-              initial={{ opacity: 0, y: 50 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              onClick={() => setSelectedImage(image)}
-              className="break-inside-avoid relative group cursor-pointer overflow-hidden rounded-sm"
-            >
-              <img
-                src={image.url}
-                alt={image.title}
-                className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                <p className="text-luxury-gold text-xs uppercase tracking-widest translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
-                  {image.category}
-                </p>
-                <h4 className="text-white font-serif text-2xl translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75">
-                  {image.title}
-                </h4>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* Lightbox Modal (Existing Code) */}
-      <AnimatePresence>
-        {selectedImage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedImage(null)}
-            className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-4 cursor-pointer backdrop-blur-sm"
-          >
-            <button className="absolute top-6 right-6 text-white text-4xl hover:text-luxury-gold transition-colors z-50">
-              <HiX />
-            </button>
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="relative max-h-[90vh] max-w-[90vw]"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <img
-                src={selectedImage.url}
-                alt={selectedImage.title}
-                className="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl border border-white/10"
-              />
-              <div className="mt-4 text-center">
-                <h3 className="text-white font-serif text-2xl">
-                  {selectedImage.title}
-                </h3>
-                <p className="text-luxury-gold text-sm uppercase tracking-widest">
-                  {selectedImage.category}
-                </p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </section>
-  );
-};
-
-export default GalleryGrid;
-</file>
-
-<file path="src/data/photos.js">
-export const galleryImages = [
-  {
-    id: 1,
-    url: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80",
-    category: "Weddings",
-    title: "The Royal Vows",
-  },
-  {
-    id: 2,
-    url: "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=800&q=80",
-    category: "Portraits",
-    title: "Golden Hour",
-  },
-  {
-    id: 3,
-    url: "https://images.unsplash.com/photo-1520854221256-174626102607?auto=format&fit=crop&w=800&q=80",
-    category: "Ceremony",
-    title: "Traditions",
-  },
-  {
-    id: 4,
-    url: "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=800&q=80",
-    category: "Candid",
-    title: "Laughter & Tears",
-  },
-  {
-    id: 5,
-    url: "https://images.unsplash.com/photo-1537905569824-f89f14cceb68?auto=format&fit=crop&w=800&q=80",
-    category: "Details",
-    title: "The Rings",
-  },
-  {
-    id: 6,
-    url: "https://images.unsplash.com/photo-1522673607200-1645062cd495?auto=format&fit=crop&w=800&q=80",
-    category: "Portraits",
-    title: "Together Forever",
-  },
-  {
-    id: 7,
-    url: "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=800&q=80",
-    category: "Weddings",
-    title: "The Walk",
-  },
-  {
-    id: 8,
-    url: "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=800&q=80",
-    category: "Fashion",
-    title: "Bridal Look",
-  },
-];
-</file>
-
-<file path="src/data/reviews.js">
-export const reviews = [
-  {
-    id: 1,
-    couple: "Rohan & Priya",
-    location: "The Oberoi Udaivilas, Udaipur",
-    date: "December 2025",
-    rating: 5,
-    image:
-      "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=1600&q=80",
-    title: "Bottled Emotions",
-    quote:
-      "BalaG Studios didn't just take photos; they bottled our emotions. Looking at the album feels like reliving the day. The way they played with light during the pheras was pure magic.",
-  },
-  {
-    id: 2,
-    couple: "Amit & Sarah",
-    location: "Forest Hill Resort, Rishikesh",
-    date: "January 2026",
-    rating: 5,
-    image:
-      "https://images.unsplash.com/photo-1522673607200-1645062cd495?auto=format&fit=crop&w=1600&q=80",
-    title: "Comfort in Chaos",
-    quote:
-      "We are awkward in front of cameras, but the team made us feel so comfortable. The candid shots of my grandmother laughing are my most treasured possessions now.",
-  },
-  {
-    id: 3,
-    couple: "Vikram & Aditi",
-    location: "Taj Falaknuma Palace, Hyderabad",
-    date: "November 2025",
-    rating: 5,
-    image:
-      "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80",
-    title: "Grand & Intimate",
-    quote:
-      "Cinematic, grand, yet so intimate. They captured details we didn't even notice ourselves. The teaser video alone made our entire family cry.",
-  },
-];
+.env
 </file>
 
 <file path="tailwind.config.js">
@@ -2759,8 +3179,7 @@ const About = () => {
             <div
               className="absolute inset-0 bg-cover bg-center rounded-sm grayscale hover:grayscale-0 transition-all duration-700 ease-in-out"
               style={{
-                backgroundImage:
-                  'url("https://images.unsplash.com/photo-1511285560982-1351cdeb9821?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80")',
+                backgroundImage: 'url("/images/testimonial-1.jpeg")',
               }}
             />
             <div className="absolute -bottom-6 -right-6 w-48 h-48 border border-luxury-gold/30 -z-10" />
@@ -2921,6 +3340,44 @@ const Hero = () => {
 export default Hero;
 </file>
 
+<file path="src/data/reviews.js">
+export const reviews = [
+  {
+    id: 1,
+    couple: "Rohan & Priya",
+    location: "The Oberoi Udaivilas, Udaipur",
+    date: "December 2025",
+    rating: 5,
+    image: "/images/testimonial-1.jpeg", // <--- Local Path
+    title: "Bottled Emotions",
+    quote:
+      "BalaG Studios didn't just take photos; they bottled our emotions. Looking at the album feels like reliving the day. The way they played with light during the pheras was pure magic.",
+  },
+  {
+    id: 2,
+    couple: "Amit & Sarah",
+    location: "Forest Hill Resort, Rishikesh",
+    date: "January 2026",
+    rating: 5,
+    image: "/images/testimonial-2.jpeg", // <--- Local Path
+    title: "Comfort in Chaos",
+    quote:
+      "We are awkward in front of cameras, but the team made us feel so comfortable. The candid shots of my grandmother laughing are my most treasured possessions now.",
+  },
+  // {
+  //   id: 3,
+  //   couple: "Vikram & Aditi",
+  //   location: "Taj Falaknuma Palace, Hyderabad",
+  //   date: "November 2025",
+  //   rating: 5,
+  //   image: "/images/testimonial-3.jpg", // <--- Local Path
+  //   title: "Grand & Intimate",
+  //   quote:
+  //     "Cinematic, grand, yet so intimate. They captured details we didn't even notice ourselves. The teaser video alone made our entire family cry.",
+  // },
+];
+</file>
+
 <file path="src/index.css">
 @tailwind base;
 @tailwind components;
@@ -3016,6 +3473,33 @@ canvas {
   opacity: 0.5;
   cursor: pointer;
 }
+
+@keyframes equalizer {
+  0% {
+    height: 20%;
+  }
+  50% {
+    height: 100%;
+  }
+  100% {
+    height: 20%;
+  }
+}
+
+.animate-equalizer {
+  animation: equalizer 1s ease-in-out infinite;
+}
+
+/* Delays for different bars so they don't move in sync */
+.delay-100 {
+  animation-delay: 0.1s;
+}
+.delay-200 {
+  animation-delay: 0.2s;
+}
+.delay-300 {
+  animation-delay: 0.3s;
+}
 </file>
 
 <file path="package.json">
@@ -3041,6 +3525,7 @@ canvas {
     "lenis": "^1.3.17",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-helmet-async": "^2.0.5",
     "react-icons": "^5.5.0",
     "react-router-dom": "^7.13.0",
     "suncalc": "^1.9.0",
@@ -3061,39 +3546,6 @@ canvas {
     "vite": "^7.3.1"
   }
 }
-</file>
-
-<file path="src/pages/Home.jsx">
-import Hero from "../components/Hero";
-import HorizontalScrollGallery from "../components/HorizontalScrollGallery";
-import StickyScrollGallery from "../components/StickyScrollGallery";
-import ContactSheet from "../components/ContactSheet";
-import DirectorSlider from "../components/DirectorSlider";
-import DeliverablesVault from "../components/DeliverablesVault"; // <--- NEW IMPORT
-import About from "../components/About";
-
-const Home = () => {
-  return (
-    <>
-      <Hero />
-      <div className="relative z-10 bg-luxury-black">
-        <HorizontalScrollGallery />
-        <StickyScrollGallery />
-        <ContactSheet />
-
-        {/* The Confidence Booster */}
-        <DirectorSlider />
-
-        {/* NEW: The Value Builder */}
-        <DeliverablesVault />
-
-        <About />
-      </div>
-    </>
-  );
-};
-
-export default Home;
 </file>
 
 <file path="src/components/Navbar.jsx">
@@ -3120,44 +3572,44 @@ const Navbar = () => {
     {
       name: "Home",
       path: "/",
-      image:
-        "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
+      image: "/images/gallery1.jpeg", // Updated to your local paths
     },
     {
-      name: "The Method", // <--- NEW LINK
+      name: "The Method",
       path: "/method",
-      image:
-        "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=1200&q=80",
+      image: "/images/gallery2.jpeg",
     },
     {
-      name: "Map", // <--- NEW LINK
+      name: "Map",
       path: "/map",
-      image:
-        "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1200&q=80",
+      image: "/images/gallery3.jpeg",
     },
     {
-      name: "Planner", // <--- NEW LINK
+      name: "Planner",
       path: "/planner",
-      image:
-        "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1200&q=80",
+      image: "/images/gallery4.jpeg",
     },
     {
       name: "Gallery",
       path: "/gallery",
-      image:
-        "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=1200&q=80",
+      image: "/images/gallery5.jpeg",
     },
+    // ---> ADD THIS NEW BLOCK <---
+    {
+      name: "Films",
+      path: "/films",
+      image: "/images/story-1.jpeg", // Use an evocative image here
+    },
+    // ----------------------------
     {
       name: "Testimonials",
       path: "/testimonials",
-      image:
-        "https://images.unsplash.com/photo-1522673607200-1645062cd495?auto=format&fit=crop&w=1200&q=80",
+      image: "/images/testimonial-1.jpeg",
     },
     {
       name: "About",
       path: "/about",
-      image:
-        "https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=1200&q=80",
+      image: "/images/testimonial-2.jpeg",
     },
   ];
 
@@ -3314,6 +3766,44 @@ const Navbar = () => {
 export default Navbar;
 </file>
 
+<file path="src/pages/Home.jsx">
+import Hero from "../components/Hero";
+import HorizontalScrollGallery from "../components/HorizontalScrollGallery";
+import StickyScrollGallery from "../components/StickyScrollGallery";
+import ContactSheet from "../components/ContactSheet";
+import DirectorSlider from "../components/DirectorSlider";
+import DeliverablesVault from "../components/DeliverablesVault"; // <--- NEW IMPORT
+import About from "../components/About";
+import SEO from "../components/SEO";
+
+const Home = () => {
+  return (
+    <>
+      <SEO
+        title="Home"
+        description="BalaG Studios is a luxury wedding photography team based in Rishikesh, specializing in cinematic storytelling and candid moments."
+      />
+      <Hero />
+      <div className="relative z-10 bg-luxury-black">
+        <HorizontalScrollGallery />
+        <StickyScrollGallery />
+        <ContactSheet />
+
+        {/* The Confidence Booster */}
+        <DirectorSlider />
+
+        {/* NEW: The Value Builder */}
+        <DeliverablesVault />
+
+        <About />
+      </div>
+    </>
+  );
+};
+
+export default Home;
+</file>
+
 <file path="src/App.jsx">
 import { useEffect, useState } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
@@ -3327,15 +3817,16 @@ import GalleryGrid from "./components/GalleryGrid";
 import About from "./components/About";
 import Enquire from "./components/Enquire";
 import Testimonials from "./components/Testimonials";
-import Locations from "./pages/Locations"; // Location Scout Feature
-import WeddingStory from "./pages/WeddingStory"; // Location Scout Feature
-import GoldenHourPage from "./pages/GoldenHourPage"; // <--- THIS WAS MISSING
+import Locations from "./pages/Locations";
+import WeddingStory from "./pages/WeddingStory";
+import GoldenHourPage from "./pages/GoldenHourPage";
 import Preloader from "./components/PreLoader";
 import Footer from "./components/Footer";
 import CustomCursor from "./components/CustomCursor";
 import GrainOverlay from "./components/GrainOverlay";
 import DirectorSlider from "./components/DirectorSlider";
-
+import SonicAtmosphere from "./components/SonicAtmosphere"; // <--- NEW IMPORT
+import Films from "./pages/Films";
 // Scroll To Top Component
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -3388,18 +3879,21 @@ function App() {
       <GrainOverlay />
       <CustomCursor />
 
+      {/* THE AUDIO WIDGET */}
+      <SonicAtmosphere />
+
       <Navbar />
 
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/gallery" element={<GalleryGrid />} />
+        <Route path="/films" element={<Films />} />
         <Route path="/about" element={<About />} />
         <Route path="/enquire" element={<Enquire />} />
         <Route path="/testimonials" element={<Testimonials />} />
-        {/* Advanced Features Routes */}
         <Route path="/map" element={<Locations />} />
         <Route path="/weddings/:id" element={<WeddingStory />} />
-        <Route path="/planner" element={<GoldenHourPage />} />{" "}
+        <Route path="/planner" element={<GoldenHourPage />} />
         <Route
           path="/method"
           element={

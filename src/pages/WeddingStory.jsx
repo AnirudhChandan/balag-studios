@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { locationData } from "../data/locations";
 import { motion } from "framer-motion";
 import { HiArrowLeft } from "react-icons/hi";
+import SEO from "../components/SEO";
 
 const WeddingStory = () => {
   const { id } = useParams();
@@ -14,6 +15,12 @@ const WeddingStory = () => {
 
   return (
     <div className="bg-luxury-black min-h-screen text-white pt-24 pb-20 px-6">
+      <SEO
+        title={`${data.couple} | ${data.title}`}
+        description={`See the full story of ${data.couple}'s wedding at ${data.title}. ${data.description}`}
+        image={data.fullStory.images[0]} // Uses the first image of their story
+        url={`/weddings/${id}`}
+      />
       <div className="max-w-7xl mx-auto">
         {/* Back Button */}
         <Link

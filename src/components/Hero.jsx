@@ -10,6 +10,7 @@ const Hero = () => {
           autoPlay
           loop
           muted
+          poster="/images/gallery1.jpeg"
           playsInline
           className="w-full h-full object-cover"
         >

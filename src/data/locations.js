@@ -3,16 +3,14 @@ export const locationData = [
     id: "wedding-rohan-priya",
     title: "The Royal Palace",
     couple: "Rohan & Priya",
-    lat: 30, // Percentage from top
-    lng: 40, // Percentage from left
+    lat: 30,
+    lng: 40,
     videoPreview:
-      "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95/3o7aD2saalBwwftBIY/giphy.gif", // Placeholder GIF
+      "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95/3o7aD2saalBwwftBIY/giphy.gif",
     description: "A sunset ceremony overlooking the Ganges.",
     fullStory: {
-      images: [
-        "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=1200&q=80",
-      ],
+      // You can reuse gallery images here or use specific story images
+      images: ["/images/story1.jpeg", "/images/gallery1.jpeg"],
       text: "The day started with a gentle breeze from the river...",
     },
   },
@@ -26,10 +24,7 @@ export const locationData = [
       "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95/xT9IgzoKnwFNmISR8I/giphy.gif",
     description: "Intimate vows amidst the raw power of nature.",
     fullStory: {
-      images: [
-        "https://images.unsplash.com/photo-1520854221256-174626102607?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=1200&q=80",
-      ],
+      images: ["/images/story2.jpeg", "/images/gallery3.jpeg"],
       text: "They wanted no guests, just the sound of the water...",
     },
   },
@@ -43,10 +38,7 @@ export const locationData = [
       "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95bm95/l0HlOaQcLJww8601u/giphy.gif",
     description: "Traditional pheras with a cinematic golden hour.",
     fullStory: {
-      images: [
-        "https://images.unsplash.com/photo-1537905569824-f89f14cceb68?auto=format&fit=crop&w=1200&q=80",
-        "https://images.unsplash.com/photo-1522673607200-1645062cd495?auto=format&fit=crop&w=1200&q=80",
-      ],
+      images: ["/images/story3.jpeg", "/images/gallery2.jpeg"],
       text: "As the sun dipped below the horizon, the fire was lit...",
     },
   },

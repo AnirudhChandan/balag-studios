@@ -1,23 +1,23 @@
-import { useEffect, useState } from "react";
-import { motion, useSpring } from "framer-motion";
+import { useEffect } from "react";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 
 const LightSourceCursor = () => {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const cursorX = useMotionValue(-100);
+  const cursorY = useMotionValue(-100);
 
   // Use springs for a "heavy", organic light movement
-  const springX = useSpring(0, { stiffness: 100, damping: 30 });
-  const springY = useSpring(0, { stiffness: 100, damping: 30 });
+  const springX = useSpring(cursorX, { stiffness: 100, damping: 30 });
+  const springY = useSpring(cursorY, { stiffness: 100, damping: 30 });
 
   useEffect(() => {
     const mouseMove = (e) => {
-      springX.set(e.clientX);
-      springY.set(e.clientY);
-      setMousePosition({ x: e.clientX, y: e.clientY });
+      cursorX.set(e.clientX);
+      cursorY.set(e.clientY);
     };
 
     window.addEventListener("mousemove", mouseMove);
     return () => window.removeEventListener("mousemove", mouseMove);
-  }, [springX, springY]);
+  }, [cursorX, cursorY]);
 
   return (
     <>
@@ -37,8 +37,10 @@ const LightSourceCursor = () => {
       <motion.div
         className="fixed top-0 left-0 w-2 h-2 bg-luxury-gold rounded-full pointer-events-none z-[10000] hidden md:block"
         style={{
-          x: mousePosition.x - 4,
-          y: mousePosition.y - 4,
+          x: cursorX,
+          y: cursorY,
+          translateX: "-50%",
+          translateY: "-50%",
         }}
       />
     </>

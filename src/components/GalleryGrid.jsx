@@ -3,12 +3,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { galleryImages } from "../data/photos";
 import { HiX } from "react-icons/hi";
 import RevealText from "./RevealText"; // Import
+import SEO from "./SEO";
 
 const GalleryGrid = () => {
   const [selectedImage, setSelectedImage] = useState(null);
 
   return (
     <section className="bg-luxury-black py-20 px-4 min-h-screen">
+      <SEO
+        title="Portfolio Gallery"
+        description="Browse our curated collection of wedding, pre-wedding, and editorial fashion photography."
+        url="/gallery"
+      />
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-16 flex flex-col items-center">

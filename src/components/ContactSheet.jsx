@@ -2,12 +2,12 @@ import { useRef } from "react";
 import { motion, useInView } from "framer-motion";
 
 const rawShots = [
-  "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=300&q=60",
-  "https://images.unsplash.com/photo-1511285560982-1351cdeb9821?auto=format&fit=crop&w=300&q=60",
-  "https://images.unsplash.com/photo-1520854221256-174626102607?auto=format&fit=crop&w=300&q=60",
-  "https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=300&q=60",
-  "https://images.unsplash.com/photo-1537905569824-f89f14cceb68?auto=format&fit=crop&w=300&q=60",
-  "https://images.unsplash.com/photo-1522673607200-1645062cd495?auto=format&fit=crop&w=300&q=60",
+  "/images/gallery1.jpeg",
+  "/images/gallery2.jpeg",
+  "/images/gallery3.jpeg",
+  "/images/gallery4.jpeg",
+  "/images/gallery5.jpeg",
+  "/images/gallery6.jpeg",
 ];
 
 const ContactSheet = () => {

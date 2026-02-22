@@ -55,8 +55,7 @@ const About = () => {
             <div
               className="absolute inset-0 bg-cover bg-center rounded-sm grayscale hover:grayscale-0 transition-all duration-700 ease-in-out"
               style={{
-                backgroundImage:
-                  'url("https://images.unsplash.com/photo-1511285560982-1351cdeb9821?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80")',
+                backgroundImage: 'url("/images/testimonial-1.jpeg")',
               }}
             />
             <div className="absolute -bottom-6 -right-6 w-48 h-48 border border-luxury-gold/30 -z-10" />
