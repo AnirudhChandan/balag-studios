@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import RevealText from "./RevealText";
+import Magnetic from "./Magnetic"; // <--- NEW IMPORT
 
 const Hero = () => {
   return (
@@ -10,8 +11,8 @@ const Hero = () => {
           autoPlay
           loop
           muted
-          poster="/images/gallery1.jpeg"
           playsInline
+          poster="/images/gallery1.jpeg"
           className="w-full h-full object-cover"
         >
           <source src="/hero.mp4" type="video/mp4" />
@@ -45,9 +46,12 @@ const Hero = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.5 }}
         >
-          <button className="px-8 py-3 md:px-10 md:py-4 border border-white text-white uppercase tracking-widest hover:bg-white hover:text-black transition-all duration-500 backdrop-blur-sm">
-            Explore Galleries
-          </button>
+          {/* --- UX UPGRADE: MAGNETIC WRAPPER AROUND THE BUTTON --- */}
+          <Magnetic>
+            <button className="px-8 py-3 md:px-10 md:py-4 border border-white text-white uppercase tracking-widest hover:bg-white hover:text-black transition-all duration-500 backdrop-blur-sm cursor-pointer">
+              Explore Galleries
+            </button>
+          </Magnetic>
         </motion.div>
       </div>
 

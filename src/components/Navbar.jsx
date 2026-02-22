@@ -1,76 +1,62 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState } from "react";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useMotionValueEvent,
+} from "framer-motion";
 import { Link } from "react-router-dom";
 import { HiMenuAlt4, HiX } from "react-icons/hi";
+import Magnetic from "./Magnetic"; // <--- NEW IMPORT
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  // NEW: State to track which image to show on hover
+  const [hidden, setHidden] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious();
+
+    if (latest > 50) {
+      setScrolled(true);
+    } else {
+      setScrolled(false);
+    }
+
+    if (latest > previous && latest > 150 && !isOpen) {
+      setHidden(true);
+    } else {
+      setHidden(false);
+    }
+  });
 
   const links = [
-    {
-      name: "Home",
-      path: "/",
-      image: "/images/gallery1.jpeg", // Updated to your local paths
-    },
-    {
-      name: "The Method",
-      path: "/method",
-      image: "/images/gallery2.jpeg",
-    },
-    {
-      name: "Map",
-      path: "/map",
-      image: "/images/gallery3.jpeg",
-    },
-    {
-      name: "Planner",
-      path: "/planner",
-      image: "/images/gallery4.jpeg",
-    },
-    {
-      name: "Gallery",
-      path: "/gallery",
-      image: "/images/gallery5.jpeg",
-    },
-    // ---> ADD THIS NEW BLOCK <---
-    {
-      name: "Films",
-      path: "/films",
-      image: "/images/story-1.jpeg", // Use an evocative image here
-    },
-    // ----------------------------
+    { name: "Home", path: "/", image: "/images/gallery1.jpeg" },
+    { name: "The Method", path: "/method", image: "/images/gallery2.jpeg" },
+    { name: "Map", path: "/map", image: "/images/gallery3.jpeg" },
+    { name: "Planner", path: "/planner", image: "/images/gallery4.jpeg" },
+    { name: "Gallery", path: "/gallery", image: "/images/gallery5.jpeg" },
+    { name: "Films", path: "/films", image: "/images/story-1.jpeg" },
     {
       name: "Testimonials",
       path: "/testimonials",
       image: "/images/testimonial-1.jpeg",
     },
-    {
-      name: "About",
-      path: "/about",
-      image: "/images/testimonial-2.jpeg",
-    },
+    { name: "About", path: "/about", image: "/images/testimonial-2.jpeg" },
   ];
 
   const menuVars = {
     initial: { scaleY: 0 },
     animate: {
       scaleY: 1,
-      transition: { duration: 0.5, ease: [0.12, 0, 0.39, 0] },
+      transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
     },
     exit: {
       scaleY: 0,
-      transition: { delay: 0.5, duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+      transition: { delay: 0.4, duration: 0.6, ease: [0.22, 1, 0.36, 1] },
     },
   };
 
@@ -79,7 +65,7 @@ const Navbar = () => {
     open: {
       transition: {
         delayChildren: 0.3,
-        staggerChildren: 0.09,
+        staggerChildren: 0.07,
         staggerDirection: 1,
       },
     },
@@ -88,52 +74,83 @@ const Navbar = () => {
   const linkVars = {
     initial: {
       y: "30vh",
+      opacity: 0,
       transition: { duration: 0.5, ease: [0.37, 0, 0.63, 1] },
     },
-    open: { y: 0, transition: { duration: 0.7, ease: [0, 0.55, 0.45, 1] } },
+    open: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.7, ease: [0, 0.55, 0.45, 1] },
+    },
   };
 
   return (
-    <nav
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
-        scrolled
-          ? "bg-luxury-black/80 backdrop-blur-md border-b border-white/10 py-4"
-          : "bg-transparent py-6"
-      }`}
-    >
-      <div className="max-w-7xl mx-auto px-6 flex justify-between items-center relative z-[60]">
-        <Link
-          to="/"
-          className="text-2xl font-serif text-white tracking-widest relative mix-blend-difference"
+    <>
+      <div className="fixed top-0 left-0 w-full z-50 flex justify-center pointer-events-none">
+        <motion.nav
+          layout
+          variants={{
+            visible: { y: 0, opacity: 1 },
+            hidden: { y: "-150%", opacity: 0 },
+          }}
+          initial="visible"
+          animate={hidden ? "hidden" : "visible"}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className={`pointer-events-auto flex items-center justify-between transition-colors duration-500 overflow-hidden ${
+            scrolled
+              ? "mt-4 w-[90%] lg:max-w-5xl bg-luxury-black/70 backdrop-blur-xl border border-white/10 rounded-full py-3 px-6 md:px-8 shadow-2xl"
+              : "mt-0 w-full max-w-7xl bg-transparent py-6 px-6 rounded-none border-transparent"
+          }`}
         >
-          BALAG <span className="text-luxury-gold">STUDIOS</span>
-        </Link>
-
-        <div className="hidden md:flex space-x-12 items-center">
-          {links.map((link) => (
-            <Link
-              key={link.name}
-              to={link.path}
-              className="text-sm uppercase tracking-widest hover:text-luxury-gold transition-all duration-300 group relative"
-            >
-              {link.name}
-              <span className="absolute -bottom-1 left-0 w-0 h-[1px] bg-luxury-gold transition-all duration-300 group-hover:w-full" />
-            </Link>
-          ))}
+          {/* Logo */}
           <Link
-            to="/enquire"
-            className="px-6 py-2 border border-luxury-gold text-luxury-gold text-xs uppercase tracking-[0.2em] hover:bg-luxury-gold hover:text-black transition-all duration-500"
+            to="/"
+            onClick={() => window.scrollTo(0, 0)}
+            className={`font-serif text-white tracking-widest relative z-10 transition-all duration-500 ${
+              scrolled ? "text-lg md:text-xl" : "text-2xl"
+            }`}
           >
-            Enquire
+            BALAG <span className="text-luxury-gold">STUDIOS</span>
           </Link>
-        </div>
 
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden text-2xl text-white relative focus:outline-none"
-        >
-          {isOpen ? <HiX /> : <HiMenuAlt4 />}
-        </button>
+          {/* Desktop Links */}
+          <div className="hidden lg:flex space-x-8 items-center z-10">
+            {links.map((link) => (
+              <Link
+                key={link.name}
+                to={link.path}
+                className="text-[10px] uppercase tracking-[0.15em] text-white/80 hover:text-luxury-gold transition-colors duration-300 relative group"
+              >
+                {link.name}
+                <span className="absolute -bottom-2 left-0 w-0 h-[1px] bg-luxury-gold transition-all duration-300 group-hover:w-full" />
+              </Link>
+            ))}
+
+            {/* --- UX UPGRADE: MAGNETIC ENQUIRE BUTTON --- */}
+            <Magnetic>
+              <Link
+                to="/enquire"
+                className={`border border-luxury-gold text-luxury-gold uppercase tracking-[0.2em] hover:bg-luxury-gold hover:text-black transition-all duration-500 ${
+                  scrolled
+                    ? "px-5 py-2 text-[9px] rounded-full"
+                    : "px-6 py-2 text-xs rounded-sm"
+                }`}
+              >
+                Enquire
+              </Link>
+            </Magnetic>
+          </div>
+
+          {/* --- UX UPGRADE: MAGNETIC HAMBURGER ICON --- */}
+          <Magnetic>
+            <button
+              onClick={() => setIsOpen(true)}
+              className="lg:hidden text-2xl text-white relative z-10 focus:outline-none hover:text-luxury-gold transition-colors cursor-pointer p-2"
+            >
+              <HiMenuAlt4 />
+            </button>
+          </Magnetic>
+        </motion.nav>
       </div>
 
       <AnimatePresence>
@@ -143,18 +160,30 @@ const Navbar = () => {
             initial="initial"
             animate="animate"
             exit="exit"
-            className="fixed inset-0 bg-luxury-black origin-top z-50 flex flex-col justify-center items-center overflow-hidden"
+            className="fixed inset-0 bg-luxury-black origin-top z-[60] flex flex-col justify-center items-center overflow-hidden"
           >
-            {/* NEW: DYNAMIC BACKGROUND IMAGE PREVIEW */}
+            {/* --- UX UPGRADE: MAGNETIC CLOSE ICON --- */}
+            <div className="absolute top-8 right-8 z-20">
+              <Magnetic>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="text-4xl text-white hover:text-luxury-gold transition-colors p-4"
+                >
+                  <HiX />
+                </button>
+              </Magnetic>
+            </div>
+
+            {/* Dynamic Background Image Preview */}
             <div className="absolute inset-0 w-full h-full z-0">
-              <AnimatePresence>
+              <AnimatePresence mode="wait">
                 {hoveredIndex !== null && (
                   <motion.div
                     key={hoveredIndex}
                     initial={{ opacity: 0, scale: 1.1 }}
-                    animate={{ opacity: 0.3, scale: 1 }} // Low opacity to keep text readable
+                    animate={{ opacity: 0.25, scale: 1 }}
                     exit={{ opacity: 0, scale: 1.05 }}
-                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
                     className="absolute inset-0 w-full h-full bg-cover bg-center grayscale"
                     style={{
                       backgroundImage: `url(${links[hoveredIndex].image})`,
@@ -162,17 +191,16 @@ const Navbar = () => {
                   />
                 )}
               </AnimatePresence>
-              {/* Fallback dark overlay */}
-              <div className="absolute inset-0 bg-black/40 z-[1]" />
+              <div className="absolute inset-0 bg-black/60 z-[1]" />
             </div>
 
-            {/* MENU LINKS */}
+            {/* Mobile Nav Links */}
             <motion.div
               variants={containerVars}
               initial="initial"
               animate="open"
               exit="initial"
-              className="flex flex-col items-center gap-6 z-10"
+              className="flex flex-col items-center gap-4 md:gap-6 z-10 w-full px-4"
             >
               {links.map((link, index) => (
                 <div
@@ -185,7 +213,7 @@ const Navbar = () => {
                     <Link
                       to={link.path}
                       onClick={() => setIsOpen(false)}
-                      className="text-5xl md:text-7xl font-serif text-white hover:text-luxury-gold transition-colors duration-300 italic md:not-italic hover:italic"
+                      className="text-4xl md:text-7xl font-serif text-white hover:text-luxury-gold transition-colors duration-300 italic md:not-italic hover:italic"
                     >
                       {link.name}
                     </Link>
@@ -198,9 +226,9 @@ const Navbar = () => {
                   <Link
                     to="/enquire"
                     onClick={() => setIsOpen(false)}
-                    className="text-xl uppercase tracking-widest text-luxury-gold border-b border-luxury-gold pb-1 hover:text-white hover:border-white transition-colors"
+                    className="text-lg md:text-xl uppercase tracking-[0.3em] text-luxury-gold border-b border-luxury-gold pb-2 hover:text-white hover:border-white transition-colors"
                   >
-                    Start Project
+                    Start Your Project
                   </Link>
                 </motion.div>
               </div>
@@ -208,7 +236,7 @@ const Navbar = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </nav>
+    </>
   );
 };
 

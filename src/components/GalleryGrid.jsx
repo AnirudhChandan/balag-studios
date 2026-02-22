@@ -2,8 +2,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { galleryImages } from "../data/photos";
 import { HiX } from "react-icons/hi";
-import RevealText from "./RevealText"; // Import
+import RevealText from "./RevealText";
 import SEO from "./SEO";
+import ProgressiveImage from "./ProgressiveImage"; // <--- NEW IMPORT
 
 const GalleryGrid = () => {
   const [selectedImage, setSelectedImage] = useState(null);
@@ -26,14 +27,13 @@ const GalleryGrid = () => {
             Portfolio
           </motion.h2>
 
-          {/* REPLACED H3 WITH REVEALTEXT */}
           <RevealText
             text="Captured Moments"
             className="font-serif text-4xl md:text-6xl text-white justify-center"
           />
         </div>
 
-        {/* Masonry Grid (Existing Code) */}
+        {/* Masonry Grid */}
         <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
           {galleryImages.map((image, index) => (
             <motion.div
@@ -45,13 +45,14 @@ const GalleryGrid = () => {
               onClick={() => setSelectedImage(image)}
               className="break-inside-avoid relative group cursor-pointer overflow-hidden rounded-sm"
             >
-              <img
+              {/* --- UX UPGRADE: REPLACED STANDARD <img> WITH PROGRESSIVE IMAGE --- */}
+              <ProgressiveImage
                 src={image.url}
                 alt={image.title}
-                className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
-                loading="lazy"
+                imageClassName="transition-transform duration-700 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
+
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6 z-20">
                 <p className="text-luxury-gold text-xs uppercase tracking-widest translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
                   {image.category}
                 </p>
@@ -64,7 +65,7 @@ const GalleryGrid = () => {
         </div>
       </div>
 
-      {/* Lightbox Modal (Existing Code) */}
+      {/* Lightbox Modal */}
       <AnimatePresence>
         {selectedImage && (
           <motion.div
@@ -85,10 +86,12 @@ const GalleryGrid = () => {
               className="relative max-h-[90vh] max-w-[90vw]"
               onClick={(e) => e.stopPropagation()}
             >
-              <img
+              {/* Also upgraded the Lightbox to use Progressive Image */}
+              <ProgressiveImage
                 src={selectedImage.url}
                 alt={selectedImage.title}
-                className="max-h-[90vh] max-w-[90vw] object-contain shadow-2xl border border-white/10"
+                containerClassName="max-h-[90vh] max-w-[90vw] shadow-2xl border border-white/10"
+                imageClassName="object-contain"
               />
               <div className="mt-4 text-center">
                 <h3 className="text-white font-serif text-2xl">

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { teamMembers } from "../data/team";
 import RevealText from "./RevealText";
 import ColorGradeSlider from "./ColorGradeSlider";
+import ProgressiveImage from "./ProgressiveImage"; // <--- NEW IMPORT
 
 const About = () => {
   return (
@@ -50,14 +51,16 @@ const About = () => {
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="relative h-[600px] w-full"
+            className="relative h-[600px] w-full group"
           >
-            <div
-              className="absolute inset-0 bg-cover bg-center rounded-sm grayscale hover:grayscale-0 transition-all duration-700 ease-in-out"
-              style={{
-                backgroundImage: 'url("/images/testimonial-1.jpeg")',
-              }}
+            {/* --- UX UPGRADE: PARALLAX PROGRESSIVE IMAGE --- */}
+            <ProgressiveImage
+              src="/images/testimonial-1.jpeg"
+              alt="BalaG Philosophy"
+              parallax={true}
+              imageClassName="grayscale group-hover:grayscale-0 transition-all duration-700 ease-in-out"
             />
+
             <div className="absolute -bottom-6 -right-6 w-48 h-48 border border-luxury-gold/30 -z-10" />
             <div className="absolute -top-6 -left-6 w-48 h-48 border border-white/10 -z-10" />
           </motion.div>
@@ -79,7 +82,6 @@ const About = () => {
             </p>
           </div>
 
-          {/* This slider proves the value of the post-production process */}
           <ColorGradeSlider
             beforeImage="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80"
             afterImage="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=80"
@@ -115,6 +117,7 @@ const About = () => {
                 className="group relative"
               >
                 <div className="overflow-hidden mb-6 relative h-96">
+                  {/* Kept static image here to avoid over-animating the grid, but you can swap to ProgressiveImage if you want! */}
                   <img
                     src={member.image}
                     alt={member.name}

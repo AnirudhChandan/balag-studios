@@ -18,8 +18,10 @@ import Footer from "./components/Footer";
 import CustomCursor from "./components/CustomCursor";
 import GrainOverlay from "./components/GrainOverlay";
 import DirectorSlider from "./components/DirectorSlider";
-import SonicAtmosphere from "./components/SonicAtmosphere"; // <--- NEW IMPORT
+import SonicAtmosphere from "./components/SonicAtmosphere";
 import Films from "./pages/Films";
+import PageTransition from "./components/Transition"; // <--- NEW IMPORT
+
 // Scroll To Top Component
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -31,6 +33,9 @@ const ScrollToTop = () => {
 
 function App() {
   const [isLoading, setIsLoading] = useState(true);
+
+  // <--- NEW: We need to track the current route location to trigger animations
+  const location = useLocation();
 
   // Initialize Lenis Smooth Scrolling
   useEffect(() => {
@@ -64,6 +69,7 @@ function App() {
 
   return (
     <div className="bg-luxury-black min-h-screen text-white font-sans selection:bg-luxury-gold selection:text-black">
+      {/* Preloader Animation */}
       <AnimatePresence mode="wait">
         {isLoading && <Preloader />}
       </AnimatePresence>
@@ -71,31 +77,97 @@ function App() {
       <ScrollToTop />
       <GrainOverlay />
       <CustomCursor />
-
-      {/* THE AUDIO WIDGET */}
       <SonicAtmosphere />
-
       <Navbar />
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/gallery" element={<GalleryGrid />} />
-        <Route path="/films" element={<Films />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/enquire" element={<Enquire />} />
-        <Route path="/testimonials" element={<Testimonials />} />
-        <Route path="/map" element={<Locations />} />
-        <Route path="/weddings/:id" element={<WeddingStory />} />
-        <Route path="/planner" element={<GoldenHourPage />} />
-        <Route
-          path="/method"
-          element={
-            <div className="pt-20">
-              <DirectorSlider />
-            </div>
-          }
-        />
-      </Routes>
+      {/* --- NEW: PAGE TRANSITION WRAPPER --- */}
+      {/* mode="wait" ensures the old page fully exits before the new one enters */}
+      <AnimatePresence mode="wait">
+        <Routes location={location} key={location.pathname}>
+          <Route
+            path="/"
+            element={
+              <PageTransition>
+                <Home />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/gallery"
+            element={
+              <PageTransition>
+                <GalleryGrid />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/films"
+            element={
+              <PageTransition>
+                <Films />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <PageTransition>
+                <About />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/enquire"
+            element={
+              <PageTransition>
+                <Enquire />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/testimonials"
+            element={
+              <PageTransition>
+                <Testimonials />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/map"
+            element={
+              <PageTransition>
+                <Locations />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/weddings/:id"
+            element={
+              <PageTransition>
+                <WeddingStory />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/planner"
+            element={
+              <PageTransition>
+                <GoldenHourPage />
+              </PageTransition>
+            }
+          />
+          <Route
+            path="/method"
+            element={
+              <PageTransition>
+                <div className="pt-20">
+                  <DirectorSlider />
+                </div>
+              </PageTransition>
+            }
+          />
+        </Routes>
+      </AnimatePresence>
 
       <Footer />
     </div>

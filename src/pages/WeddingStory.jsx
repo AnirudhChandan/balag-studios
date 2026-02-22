@@ -3,6 +3,7 @@ import { locationData } from "../data/locations";
 import { motion } from "framer-motion";
 import { HiArrowLeft } from "react-icons/hi";
 import SEO from "../components/SEO";
+import ProgressiveImage from "../components/ProgressiveImage"; // <--- NEW IMPORT
 
 const WeddingStory = () => {
   const { id } = useParams();
@@ -18,7 +19,7 @@ const WeddingStory = () => {
       <SEO
         title={`${data.couple} | ${data.title}`}
         description={`See the full story of ${data.couple}'s wedding at ${data.title}. ${data.description}`}
-        image={data.fullStory.images[0]} // Uses the first image of their story
+        image={data.fullStory.images[0]}
         url={`/weddings/${id}`}
       />
       <div className="max-w-7xl mx-auto">
@@ -47,7 +48,7 @@ const WeddingStory = () => {
           </p>
         </motion.div>
 
-        {/* Story Content */}
+        {/* Story Content Grid */}
         <div className="grid gap-12">
           {data.fullStory.images.map((img, i) => (
             <motion.div
@@ -58,10 +59,11 @@ const WeddingStory = () => {
               transition={{ duration: 0.8 }}
               className="relative aspect-[16/9] overflow-hidden rounded-sm"
             >
-              <img
+              {/* --- UX UPGRADE: PROGRESSIVE IMAGE WITH PARALLAX --- */}
+              <ProgressiveImage
                 src={img}
-                alt="Wedding shot"
-                className="w-full h-full object-cover"
+                alt={`Wedding shot ${i + 1}`}
+                parallax={true} // Turning on the magic
               />
             </motion.div>
           ))}
