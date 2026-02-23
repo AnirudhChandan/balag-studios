@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Sphere, Html } from "@react-three/drei";
+import { Sphere, Html, useTexture, Stars } from "@react-three/drei";
 import * as THREE from "three";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -8,13 +8,20 @@ import { locationData } from "../data/locations";
 
 const GLOBE_RADIUS = 2;
 
-// The math to convert GPS coordinates to a 3D sphere
+// --- THE PERFECTED GPS MATH ---
 const getCoordinates = (lat, lng) => {
+  // THE GOLDILOCKS FIX:
+  // -90 pushed it to Japan. +90 pushed it to Africa. 0 locks it perfectly onto India.
+  const PIN_OFFSET = 0;
+
   const phi = (90 - lat) * (Math.PI / 180);
-  const theta = (lng + 180) * (Math.PI / 180);
+  const theta = (lng + PIN_OFFSET) * (Math.PI / 180);
+
+  // Core Three.js Spherical to Cartesian conversion
   const x = -(GLOBE_RADIUS * Math.sin(phi) * Math.cos(theta));
-  const z = GLOBE_RADIUS * Math.sin(phi) * Math.sin(theta);
   const y = GLOBE_RADIUS * Math.cos(phi);
+  const z = GLOBE_RADIUS * Math.sin(phi) * Math.sin(theta);
+
   return new THREE.Vector3(x, y, z);
 };
 
@@ -23,28 +30,34 @@ const Marker = ({ loc }) => {
   const pos = getCoordinates(loc.lat, loc.lng);
   const [hovered, setHovered] = useState(false);
   const markerRef = useRef(null);
+  const ringRef = useRef(null);
   const navigate = useNavigate();
 
-  // THE FIX: Use a deterministic offset based on the unique coordinates
-  // This satisfies React's purity rules while keeping the pins out of sync
   const pulseOffset = loc.lat + loc.lng;
 
-  // 60fps GPU animation for the pulsing effect
+  // 60fps GPU animation
   useFrame(({ clock }) => {
+    // 1. Core Pulsing
     if (markerRef.current) {
       markerRef.current.scale.setScalar(
         1 + Math.sin(clock.elapsedTime * 4 + pulseOffset) * 0.2,
       );
     }
+    // 2. The Sonar Ripple
+    if (ringRef.current) {
+      const t = (clock.elapsedTime * 0.5 + (pulseOffset % 1)) % 1;
+      ringRef.current.scale.setScalar(1 + t * 4);
+      ringRef.current.material.opacity = 0.6 * (1 - t);
+    }
   });
 
   return (
     <group position={pos}>
-      {/* 1. The Interactive Gold Core */}
+      {/* The Interactive Gold Core */}
       <mesh
         ref={markerRef}
         onPointerOver={(e) => {
-          e.stopPropagation(); // Prevents hovering multiple pins at once
+          e.stopPropagation();
           setHovered(true);
           document.body.style.cursor = "pointer";
         }}
@@ -61,19 +74,24 @@ const Marker = ({ loc }) => {
         <meshBasicMaterial color="#d4af37" />
       </mesh>
 
-      {/* 2. The Transparent Glow Halo */}
-      <mesh>
-        <sphereGeometry args={[0.08, 16, 16]} />
-        <meshBasicMaterial color="#d4af37" transparent opacity={0.3} />
+      {/* The Animated Sonar Ripple */}
+      <mesh ref={ringRef}>
+        <sphereGeometry args={[0.04, 16, 16]} />
+        <meshBasicMaterial
+          color="#d4af37"
+          transparent
+          opacity={0}
+          depthWrite={false}
+        />
       </mesh>
 
-      {/* 3. The 3D UI Overlay (The Tooltip) */}
+      {/* The Tooltip */}
       <Html center zIndexRange={[100, 0]} style={{ pointerEvents: "none" }}>
         <AnimatePresence>
           {hovered && (
             <motion.div
               initial={{ opacity: 0, y: 20, scale: 0.9 }}
-              animate={{ opacity: 1, y: -90, scale: 1 }} // Floats above the pin
+              animate={{ opacity: 1, y: -90, scale: 1 }}
               exit={{ opacity: 0, y: 0, scale: 0.9 }}
               transition={{ duration: 0.3 }}
               className="w-64 bg-black/90 border border-luxury-gold/30 rounded-lg overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md"
@@ -107,28 +125,66 @@ const Marker = ({ loc }) => {
 
 // The Main Globe Component
 const Globe = () => {
+  const [earthMap, cloudsMap] = useTexture([
+    "https://unpkg.com/three-globe/example/img/earth-night.jpg",
+    "https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png",
+  ]);
+
+  const cloudsRef = useRef(null);
+
+  useFrame(() => {
+    if (cloudsRef.current) {
+      cloudsRef.current.rotation.y += 0.0005;
+    }
+  });
+
   return (
-    <group rotation={[0.3, -1.2, 0]}>
-      {" "}
-      {/* Rotated to face India by default */}
-      {/* The Solid Dark Earth */}
-      <Sphere args={[GLOBE_RADIUS, 64, 64]}>
-        <meshStandardMaterial color="#0a0a0a" roughness={0.6} metalness={0.8} />
-      </Sphere>
-      {/* The Holographic Wireframe Grid */}
-      <Sphere args={[GLOBE_RADIUS * 1.01, 32, 32]}>
-        <meshBasicMaterial
-          color="#ffffff"
-          wireframe
-          transparent
-          opacity={0.05}
-        />
-      </Sphere>
-      {/* Render all the pins */}
-      {locationData.map((loc) => (
-        <Marker key={loc.id} loc={loc} />
-      ))}
-    </group>
+    <>
+      <Stars
+        radius={100}
+        depth={50}
+        count={4000}
+        factor={4}
+        saturation={0}
+        fade
+        speed={0.5}
+      />
+
+      {/* --- INITIAL CAMERA FOCUS --- */}
+      {/* The Y-axis rotation (-1.2) spins the globe so India directly faces the user on load */}
+      <group rotation={[0.2, -1.2, 0]}>
+        {/* The Solid Earth */}
+        <Sphere args={[GLOBE_RADIUS, 64, 64]}>
+          <meshBasicMaterial map={earthMap} color="#ffffff" />
+        </Sphere>
+
+        {/* The Clouds */}
+        <Sphere args={[GLOBE_RADIUS * 1.01, 64, 64]} ref={cloudsRef}>
+          <meshBasicMaterial
+            map={cloudsMap}
+            transparent
+            opacity={0.3}
+            blending={THREE.AdditiveBlending}
+            depthWrite={false}
+          />
+        </Sphere>
+
+        {/* The Gold Wireframe */}
+        <Sphere args={[GLOBE_RADIUS * 1.005, 32, 32]}>
+          <meshBasicMaterial
+            color="#d4af37"
+            wireframe
+            transparent
+            opacity={0.03}
+          />
+        </Sphere>
+
+        {/* The Pins */}
+        {locationData.map((loc) => (
+          <Marker key={loc.id} loc={loc} />
+        ))}
+      </group>
+    </>
   );
 };
 

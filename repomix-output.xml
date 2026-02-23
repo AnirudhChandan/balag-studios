@@ -106,12 +106,15 @@ src/
   index.css
   main.jsx
 .gitignore
+.npmrc
+.vercelignore
 eslint.config.js
 index.html
 package.json
 postcss.config.js
 README.md
 tailwind.config.js
+vercel.json
 vite.config.js
 </directory_structure>
 
@@ -1170,28 +1173,6 @@ const GoldenHourOracle = () => {
 export default GoldenHourOracle;
 </file>
 
-<file path="src/components/GrainOverlay.jsx">
-const GrainOverlay = () => {
-  return (
-    <div className="fixed inset-0 pointer-events-none z-[9999] opacity-[0.05] mix-blend-overlay">
-      <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-        <filter id="noiseFilter">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.80"
-            numOctaves="3"
-            stitchTiles="stitch"
-          />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#noiseFilter)" />
-      </svg>
-    </div>
-  );
-};
-
-export default GrainOverlay;
-</file>
-
 <file path="src/components/Magnetic.jsx">
 import { useRef } from "react";
 import { motion, useMotionValue, useSpring } from "framer-motion";
@@ -1859,6 +1840,26 @@ export const videoData = [
 }
 </file>
 
+<file path=".npmrc">
+legacy-peer-deps=true
+</file>
+
+<file path=".vercelignore">
+node_modules
+npm-debug.log
+.env.local
+.env.*.local
+dist
+.git
+.gitignore
+README.md
+.DS_Store
+*.pem
+.next
+repomix-output.xml
+.eslintignore
+</file>
+
 <file path="eslint.config.js">
 import js from '@eslint/js'
 import globals from 'globals'
@@ -1917,16 +1918,6 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
-</file>
-
-<file path="vite.config.js">
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
-})
 </file>
 
 <file path="src/components/ContactSheet.jsx">
@@ -2499,6 +2490,84 @@ export default {
 };
 </file>
 
+<file path="vercel.json">
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ]
+}
+</file>
+
+<file path="vite.config.js">
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  build: {
+    // Code splitting for faster initial load
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "three-vendor": ["three", "@react-three/fiber", "@react-three/drei"],
+          "animation-vendor": ["gsap", "@gsap/react", "framer-motion"],
+          router: ["react-router-dom"],
+        },
+      },
+    },
+    // Minify and optimize
+    minify: "terser",
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console logs in production
+      },
+    },
+    // Higher chunk size warning threshold
+    chunkSizeWarningLimit: 1000,
+  },
+  // Deduplicate dependencies
+  dedupe: ["react", "react-dom"],
+});
+</file>
+
 <file path="src/components/Enquire.jsx">
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -2831,6 +2900,26 @@ const Enquire = () => {
 };
 
 export default Enquire;
+</file>
+
+<file path="src/components/GrainOverlay.jsx">
+const GrainOverlay = () => {
+  return (
+    <div
+      className="fixed inset-0 pointer-events-none z-[9999]"
+      style={{
+        // Using a highly compressed, static noise image instead of a live SVG
+        backgroundImage: `url("https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Dissolve_Noise_Texture.png")`,
+        backgroundRepeat: "repeat",
+        backgroundSize: "200px",
+        opacity: 0.04, // Pure opacity, NO mix-blend-mode. This saves the GPU.
+        transform: "translateZ(0)", // Hardware acceleration
+      }}
+    />
+  );
+};
+
+export default GrainOverlay;
 </file>
 
 <file path="src/data/locations.js">
@@ -3516,52 +3605,6 @@ export const reviews = [
 ];
 </file>
 
-<file path="package.json">
-{
-  "name": "balag-studios",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@emailjs/browser": "^4.4.1",
-    "@gsap/react": "^2.1.2",
-    "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.5.0",
-    "@types/three": "^0.182.0",
-    "framer-motion": "^12.34.0",
-    "gsap": "^3.14.2",
-    "lenis": "^1.3.17",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "react-helmet-async": "^2.0.5",
-    "react-icons": "^5.5.0",
-    "react-router-dom": "^7.13.0",
-    "suncalc": "^1.9.0",
-    "three": "^0.182.0"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.1",
-    "@types/react": "^19.2.7",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "autoprefixer": "^10.4.24",
-    "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.17",
-    "vite": "^7.3.1"
-  }
-}
-</file>
-
 <file path="src/components/About.jsx">
 import { motion } from "framer-motion";
 import { teamMembers } from "../data/team";
@@ -3712,81 +3755,52 @@ const About = () => {
 export default About;
 </file>
 
-<file path="src/components/Hero.jsx">
-import { motion } from "framer-motion";
-import RevealText from "./RevealText";
-import Magnetic from "./Magnetic"; // <--- NEW IMPORT
-
-const Hero = () => {
-  return (
-    <section className="relative h-screen w-full overflow-hidden">
-      {/* Background Video Layer */}
-      <div className="absolute inset-0 w-full h-full">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster="/images/gallery1.jpeg"
-          className="w-full h-full object-cover"
-        >
-          <source src="/hero.mp4" type="video/mp4" />
-        </video>
-        {/* Dark overlay for text readability */}
-        <div className="absolute inset-0 bg-black/40" />
-      </div>
-
-      {/* Content Layer */}
-      <div className="relative h-full flex flex-col items-center justify-center text-center px-4 z-10">
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="text-luxury-gold uppercase tracking-[0.3em] text-sm md:text-base mb-6"
-        >
-          Capturing Timeless Moments
-        </motion.p>
-
-        {/* Brand Title */}
-        <div className="mb-8 flex justify-center">
-          <RevealText
-            text="BalaG Studios"
-            className="font-serif text-5xl md:text-7xl lg:text-9xl text-white drop-shadow-lg justify-center"
-            delay={0.5}
-          />
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1, delay: 1.5 }}
-        >
-          {/* --- UX UPGRADE: MAGNETIC WRAPPER AROUND THE BUTTON --- */}
-          <Magnetic>
-            <button className="px-8 py-3 md:px-10 md:py-4 border border-white text-white uppercase tracking-widest hover:bg-white hover:text-black transition-all duration-500 backdrop-blur-sm cursor-pointer">
-              Explore Galleries
-            </button>
-          </Magnetic>
-        </motion.div>
-      </div>
-
-      {/* Scroll Indicator */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 2, duration: 1 }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10"
-      >
-        <span className="text-[10px] uppercase tracking-widest text-white/80">
-          Scroll
-        </span>
-        <div className="w-[1px] h-12 bg-gradient-to-b from-white to-transparent" />
-      </motion.div>
-    </section>
-  );
-};
-
-export default Hero;
+<file path="package.json">
+{
+  "name": "balag-studios",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emailjs/browser": "^4.4.1",
+    "@gsap/react": "^2.1.2",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.5.0",
+    "@types/three": "^0.182.0",
+    "framer-motion": "^12.34.0",
+    "gsap": "^3.14.2",
+    "lenis": "^1.3.17",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-helmet-async": "^2.0.5",
+    "react-icons": "^5.5.0",
+    "react-router-dom": "^7.13.0",
+    "suncalc": "^1.9.0",
+    "three": "^0.182.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "autoprefixer": "^10.4.24",
+    "compression": "^1.8.1",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "terser": "^5.46.0",
+    "vite": "^7.3.1"
+  }
+}
 </file>
 
 <file path="src/pages/Home.jsx">
@@ -3961,6 +3975,129 @@ html {
 }
 </file>
 
+<file path="src/components/Hero.jsx">
+import { useEffect, useRef, useState } from "react";
+import { motion } from "framer-motion";
+import RevealText from "./RevealText";
+import Magnetic from "./Magnetic";
+import { HiPlay } from "react-icons/hi2";
+
+const Hero = () => {
+  const videoRef = useRef(null);
+  const [videoFailed, setVideoFailed] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // CHROMIUM FIX: Arc requires these to be explicitly set on the DOM node
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+
+    // Force play and catch Arc's block
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((error) => {
+        console.warn(
+          "Arc strictly blocked autoplay. Showing manual play button.",
+          error,
+        );
+        setVideoFailed(true); // Arc blocked it, show the play button
+      });
+    }
+  }, []);
+
+  const handleManualPlay = () => {
+    if (videoRef.current) {
+      videoRef.current.play();
+      setVideoFailed(false);
+    }
+  };
+
+  return (
+    <section className="relative h-screen w-full overflow-hidden">
+      {/* Background Video Layer */}
+      <div className="absolute inset-0 w-full h-full">
+        <video
+          ref={videoRef}
+          loop
+          muted
+          playsInline
+          preload="auto"
+          poster="/images/gallery1.jpeg"
+          className="w-full h-full object-cover"
+          onCanPlay={(e) => e.target.play()} // Secondary trigger for Vercel loading
+        >
+          <source src="/hero.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-black/40" />
+      </div>
+
+      {/* Content Layer */}
+      <div className="relative h-full flex flex-col items-center justify-center text-center px-4 z-10">
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          className="text-luxury-gold uppercase tracking-[0.3em] text-sm md:text-base mb-6"
+        >
+          Capturing Timeless Moments
+        </motion.p>
+
+        {/* Brand Title */}
+        <div className="mb-8 flex justify-center">
+          <RevealText
+            text="BalaG Studios"
+            className="font-serif text-5xl md:text-7xl lg:text-9xl text-white drop-shadow-lg justify-center"
+            delay={0.5}
+          />
+        </div>
+
+        {/* Call to Actions */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 1.5 }}
+          className="flex flex-col sm:flex-row items-center gap-6"
+        >
+          <Magnetic>
+            <button className="px-8 py-3 md:px-10 md:py-4 border border-white text-white uppercase tracking-widest hover:bg-white hover:text-black transition-all duration-500 backdrop-blur-sm cursor-pointer">
+              Explore Galleries
+            </button>
+          </Magnetic>
+
+          {/* ARC FALLBACK: Only shows if Arc strictly blocks the background video */}
+          {videoFailed && (
+            <button
+              onClick={handleManualPlay}
+              className="flex items-center gap-3 px-6 py-3 md:py-4 text-luxury-gold hover:text-white transition-colors uppercase tracking-widest text-sm"
+            >
+              <HiPlay className="text-2xl" /> Play Reel
+            </button>
+          )}
+        </motion.div>
+      </div>
+
+      {/* Scroll Indicator */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2, duration: 1 }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10"
+      >
+        <span className="text-[10px] uppercase tracking-widest text-white/80">
+          Scroll
+        </span>
+        <div className="w-[1px] h-12 bg-gradient-to-b from-white to-transparent" />
+      </motion.div>
+    </section>
+  );
+};
+
+export default Hero;
+</file>
+
 <file path="src/components/Navbar.jsx">
 import { useState } from "react";
 import {
@@ -3971,7 +4108,7 @@ import {
 } from "framer-motion";
 import { Link } from "react-router-dom";
 import { HiMenuAlt4, HiX } from "react-icons/hi";
-import Magnetic from "./Magnetic"; // <--- NEW IMPORT
+import Magnetic from "./Magnetic";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -4062,7 +4199,7 @@ const Navbar = () => {
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           className={`pointer-events-auto flex items-center justify-between transition-colors duration-500 overflow-hidden ${
             scrolled
-              ? "mt-4 w-[90%] lg:max-w-5xl bg-luxury-black/70 backdrop-blur-xl border border-white/10 rounded-full py-3 px-6 md:px-8 shadow-2xl"
+              ? "mt-4 w-[90%] lg:max-w-5xl bg-luxury-black/95 border border-white/10 rounded-full py-3 px-6 md:px-8 shadow-2xl"
               : "mt-0 w-full max-w-7xl bg-transparent py-6 px-6 rounded-none border-transparent"
           }`}
         >
@@ -4285,7 +4422,7 @@ function App() {
       </AnimatePresence>
 
       <ScrollToTop />
-      <GrainOverlay />
+      {/* <GrainOverlay /> */}
       <CustomCursor />
       <SonicAtmosphere />
       <Navbar />

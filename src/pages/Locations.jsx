@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, Environment } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei"; // REMOVED Environment import
 import SEO from "../components/SEO";
 import Globe from "../components/Globe";
 
@@ -28,25 +28,24 @@ const Locations = () => {
 
       {/* THE 3D MAP CONTAINER */}
       <div className="relative w-full max-w-6xl aspect-square md:aspect-[16/9] bg-[#050505] rounded-xl border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden cursor-grab active:cursor-grabbing">
-        {/* Grain Overlay to make the "space" background look like film */}
+        {/* Grain Overlay */}
         <div className="absolute inset-0 opacity-20 pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay z-10" />
 
         {/* The React Three Fiber Engine */}
         <Canvas camera={{ position: [0, 0, 6], fov: 45 }}>
-          {/* Cinematic Lighting */}
-          <ambientLight intensity={0.2} />
-          <directionalLight position={[10, 10, 5]} intensity={1.5} />
+          {/* THE FIX 2: Boosted ambient light to reveal the continents */}
+          <ambientLight intensity={0.8} />
+          <directionalLight position={[10, 10, 5]} intensity={2} />
           <directionalLight
             position={[-10, -10, -5]}
-            intensity={0.5}
+            intensity={1}
             color="#d4af37"
           />
 
           <Suspense fallback={null}>
             <Globe />
-            <Environment preset="city" />
+            {/* Removed the Environment tag entirely */}
 
-            {/* The Controls: Auto-spins slowly, disables zooming to preserve layout */}
             <OrbitControls
               enableZoom={false}
               enablePan={false}
