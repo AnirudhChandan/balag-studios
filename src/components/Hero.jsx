@@ -1,17 +1,43 @@
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import RevealText from "./RevealText";
-import Magnetic from "./Magnetic"; // <--- NEW IMPORT
+import Magnetic from "./Magnetic";
 
 const Hero = () => {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    // A function to aggressively force the video to play
+    const forcePlay = () => {
+      if (videoRef.current) {
+        videoRef.current.play().catch((error) => {
+          console.warn("Chromium blocked autoplay, retrying...", error);
+        });
+      }
+    };
+
+    // 1. Try immediately
+    forcePlay();
+
+    // 2. Try again exactly when the 2.5-second Preloader finishes
+    const timer = setTimeout(() => {
+      forcePlay();
+    }, 2500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <section className="relative h-screen w-full overflow-hidden">
       {/* Background Video Layer */}
       <div className="absolute inset-0 w-full h-full">
         <video
+          ref={videoRef}
           autoPlay
           loop
           muted
           playsInline
+          preload="auto" // Tells Arc to definitely download this
           poster="/images/gallery1.jpeg"
           className="w-full h-full object-cover"
         >
@@ -46,7 +72,6 @@ const Hero = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.5 }}
         >
-          {/* --- UX UPGRADE: MAGNETIC WRAPPER AROUND THE BUTTON --- */}
           <Magnetic>
             <button className="px-8 py-3 md:px-10 md:py-4 border border-white text-white uppercase tracking-widest hover:bg-white hover:text-black transition-all duration-500 backdrop-blur-sm cursor-pointer">
               Explore Galleries
