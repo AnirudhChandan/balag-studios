@@ -7,7 +7,7 @@ import {
 } from "framer-motion";
 import { Link } from "react-router-dom";
 import { HiMenuAlt4, HiX } from "react-icons/hi";
-import Magnetic from "./Magnetic"; // <--- NEW IMPORT
+import Magnetic from "./Magnetic";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -98,7 +98,7 @@ const Navbar = () => {
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           className={`pointer-events-auto flex items-center justify-between transition-colors duration-500 overflow-hidden ${
             scrolled
-              ? "mt-4 w-[90%] lg:max-w-5xl bg-luxury-black/70 backdrop-blur-xl border border-white/10 rounded-full py-3 px-6 md:px-8 shadow-2xl"
+              ? "mt-4 w-[90%] lg:max-w-5xl bg-luxury-black/95 border border-white/10 rounded-full py-3 px-6 md:px-8 shadow-2xl"
               : "mt-0 w-full max-w-7xl bg-transparent py-6 px-6 rounded-none border-transparent"
           }`}
         >

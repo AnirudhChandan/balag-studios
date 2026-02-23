@@ -1,31 +1,41 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import RevealText from "./RevealText";
 import Magnetic from "./Magnetic";
+import { HiPlay } from "react-icons/hi2";
 
 const Hero = () => {
   const videoRef = useRef(null);
+  const [videoFailed, setVideoFailed] = useState(false);
 
   useEffect(() => {
-    // A function to aggressively force the video to play
-    const forcePlay = () => {
-      if (videoRef.current) {
-        videoRef.current.play().catch((error) => {
-          console.warn("Chromium blocked autoplay, retrying...", error);
-        });
-      }
-    };
+    const video = videoRef.current;
+    if (!video) return;
 
-    // 1. Try immediately
-    forcePlay();
+    // CHROMIUM FIX: Arc requires these to be explicitly set on the DOM node
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
 
-    // 2. Try again exactly when the 2.5-second Preloader finishes
-    const timer = setTimeout(() => {
-      forcePlay();
-    }, 2500);
-
-    return () => clearTimeout(timer);
+    // Force play and catch Arc's block
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch((error) => {
+        console.warn(
+          "Arc strictly blocked autoplay. Showing manual play button.",
+          error,
+        );
+        setVideoFailed(true); // Arc blocked it, show the play button
+      });
+    }
   }, []);
+
+  const handleManualPlay = () => {
+    if (videoRef.current) {
+      videoRef.current.play();
+      setVideoFailed(false);
+    }
+  };
 
   return (
     <section className="relative h-screen w-full overflow-hidden">
@@ -33,17 +43,16 @@ const Hero = () => {
       <div className="absolute inset-0 w-full h-full">
         <video
           ref={videoRef}
-          autoPlay
           loop
           muted
           playsInline
-          preload="auto" // Tells Arc to definitely download this
+          preload="auto"
           poster="/images/gallery1.jpeg"
           className="w-full h-full object-cover"
+          onCanPlay={(e) => e.target.play()} // Secondary trigger for Vercel loading
         >
           <source src="/hero.mp4" type="video/mp4" />
         </video>
-        {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-black/40" />
       </div>
 
@@ -67,16 +76,28 @@ const Hero = () => {
           />
         </div>
 
+        {/* Call to Actions */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 1.5 }}
+          className="flex flex-col sm:flex-row items-center gap-6"
         >
           <Magnetic>
             <button className="px-8 py-3 md:px-10 md:py-4 border border-white text-white uppercase tracking-widest hover:bg-white hover:text-black transition-all duration-500 backdrop-blur-sm cursor-pointer">
               Explore Galleries
             </button>
           </Magnetic>
+
+          {/* ARC FALLBACK: Only shows if Arc strictly blocks the background video */}
+          {videoFailed && (
+            <button
+              onClick={handleManualPlay}
+              className="flex items-center gap-3 px-6 py-3 md:py-4 text-luxury-gold hover:text-white transition-colors uppercase tracking-widest text-sm"
+            >
+              <HiPlay className="text-2xl" /> Play Reel
+            </button>
+          )}
         </motion.div>
       </div>
 

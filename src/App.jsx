@@ -75,7 +75,7 @@ function App() {
       </AnimatePresence>
 
       <ScrollToTop />
-      <GrainOverlay />
+      {/* <GrainOverlay /> */}
       <CustomCursor />
       <SonicAtmosphere />
       <Navbar />

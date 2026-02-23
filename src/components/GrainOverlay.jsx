@@ -1,12 +1,14 @@
 const GrainOverlay = () => {
   return (
     <div
-      className="fixed inset-0 pointer-events-none z-[9999] mix-blend-overlay"
+      className="fixed inset-0 pointer-events-none z-[9999]"
       style={{
-        // Tiling a tiny 200px image is 1000x faster than a live fullscreen SVG
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-        opacity: 0.05,
-        transform: "translateZ(0)", // FORCES GPU ACCELERATION
+        // Using a highly compressed, static noise image instead of a live SVG
+        backgroundImage: `url("https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Dissolve_Noise_Texture.png")`,
+        backgroundRepeat: "repeat",
+        backgroundSize: "200px",
+        opacity: 0.04, // Pure opacity, NO mix-blend-mode. This saves the GPU.
+        transform: "translateZ(0)", // Hardware acceleration
       }}
     />
   );
