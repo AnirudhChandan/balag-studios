@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 
 .env
+# AI context dumps
+repomix-output.xml
